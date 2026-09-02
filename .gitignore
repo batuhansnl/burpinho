@@ -1,0 +1,78 @@
+# Local/unneeded files (IDE configs, tool settings, etc.)
+.local/
+.claude/
+.idea/
+.vscode/
+releases/
+tests/
+CLAUDE.md
+Makefile
+release.sh
+
+# Secrets and credentials — CRITICAL for AI API key safety
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+credentials.*
+secrets.*
+api_keys.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.mypy_cache/
+_cache/
+.tox/
+.python-version
+
+# Java / Gradle / Burp Suite artifacts
+*.class
+*.jar
+*.war
+.gradle/
+build/
+out/
+bin/
+*.iml
+*.ipr
+*.iws
+local.properties
+
+# Database and scan data
+*.sqlite
+*.sqlite3
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Editor backup/temp files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*~
+*.swp
+*.swo
+
+# Logs
+*.log
