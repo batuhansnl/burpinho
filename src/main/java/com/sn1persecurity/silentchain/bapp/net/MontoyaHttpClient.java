@@ -58,21 +58,77 @@ public class MontoyaHttpClient {
     }
 
     private HttpReply send(HttpRequest request) {
+        // 1. First attempt: standard Montoya HTTP
         try {
-            // Allow internal / self-signed TLS certificates for corporate local LLMs
             RequestOptions options = RequestOptions.requestOptions();
             HttpRequestResponse rr = api.http().sendRequest(request, options);
             HttpResponse resp = rr.response();
-            if (resp == null) {
-                return new HttpReply(0, "", Collections.emptyMap());
+            if (resp != null && resp.statusCode() > 0) {
+                String bodyStr = resp.bodyToString();
+                Map<String, String> headerMap = new LinkedHashMap<>();
+                resp.headers().forEach(h -> headerMap.put(h.name(), h.value()));
+                return new HttpReply(resp.statusCode(), bodyStr, headerMap);
             }
-            String bodyStr = resp.bodyToString();
-            Map<String, String> headerMap = new LinkedHashMap<>();
-            resp.headers().forEach(h -> headerMap.put(h.name(), h.value()));
-            return new HttpReply(resp.statusCode(), bodyStr, headerMap);
         } catch (Throwable t) {
-            api.logging().logToError("MontoyaHttpClient: " + t.getClass().getSimpleName() + ": " + t.getMessage());
+            api.logging().logToError("MontoyaHttpClient (Burp Native): " + t.getMessage());
+        }
+
+        // 2. Direct JVM Java Fallback: Bypasses Burp Upstream Proxy / SOCKS & TLS issues for corporate networks
+        return sendDirectJava(request);
+    }
+
+    private HttpReply sendDirectJava(HttpRequest request) {
+        try {
+            java.net.http.HttpClient client = createTrustAllClient();
+            java.net.http.HttpRequest.Builder b = java.net.http.HttpRequest.newBuilder()
+                    .uri(URI.create(request.url()))
+                    .timeout(java.time.Duration.ofSeconds(30));
+
+            if (request.headers() != null) {
+                for (burp.api.montoya.http.message.HttpHeader h : request.headers()) {
+                    String name = h.name();
+                    if (!name.equalsIgnoreCase("Host") && !name.equalsIgnoreCase("Content-Length")) {
+                        b.header(name, h.value());
+                    }
+                }
+            }
+
+            if ("POST".equalsIgnoreCase(request.method())) {
+                String body = request.bodyToString();
+                b.POST(java.net.http.HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
+            } else {
+                b.GET();
+            }
+
+            java.net.http.HttpResponse<String> resp = client.send(b.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+            Map<String, String> headerMap = new LinkedHashMap<>();
+            resp.headers().map().forEach((k, v) -> headerMap.put(k, String.join(", ", v)));
+            return new HttpReply(resp.statusCode(), resp.body(), headerMap);
+        } catch (Throwable t) {
+            api.logging().logToError("MontoyaHttpClient (Direct Java Fallback): " + t.getClass().getSimpleName() + ": " + t.getMessage());
             return new HttpReply(0, "", Collections.emptyMap());
+        }
+    }
+
+    private static java.net.http.HttpClient createTrustAllClient() {
+        try {
+            javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
+                new javax.net.ssl.X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+                }
+            };
+            javax.net.ssl.SSLContext sc = javax.net.ssl.SSLContext.getInstance("TLS");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+
+            return java.net.http.HttpClient.newBuilder()
+                    .sslContext(sc)
+                    .connectTimeout(java.time.Duration.ofSeconds(15))
+                    .followRedirects(java.net.http.HttpClient.Redirect.ALWAYS)
+                    .build();
+        } catch (Exception e) {
+            return java.net.http.HttpClient.newHttpClient();
         }
     }
 

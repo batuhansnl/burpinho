@@ -5,14 +5,14 @@
 ![burpinho Logo](https://img.shields.io/badge/burpinho-Local%20AI%20Security-blue?style=for-the-badge)
 [![Burp Suite](https://img.shields.io/badge/Burp_Suite-Extension-orange?style=for-the-badge&logo=burpsuite)](https://portswigger.net/burp)
 [![Java](https://img.shields.io/badge/Java-17%2F21-yellow?style=for-the-badge&logo=openjdk)](https://www.java.com/)
-[![Version](https://img.shields.io/badge/version-2.0.0-green?style=for-the-badge)](https://github.com/batuhansnl/burpinho)
+[![Version](https://img.shields.io/badge/version-2.1.0-green?style=for-the-badge)](https://github.com/batuhansnl/burpinho)
 
 ### 🔗 🧠 🔒
 
 **%100 Yerel, Gizli ve Özel AI Zafiyet Analiz Eklentisi (Burp Suite)**  
 *(OpenAI-Compatible Local LLM & Ollama Odaklı)*
 
-[⬇️ **Download burpinho v2.0.0 JAR**](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-2.0.0.jar) • [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--quick-start) • [⚙️ Ayarlar](#2-şirket-içi--yerel-llm-sunucunuzu-bağlayın)
+[⬇️ **Download burpinho v2.1.0 JAR**](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-2.1.0.jar) • [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--quick-start) • [⚙️ Ayarlar](#2-şirket-içi--yerel-llm-sunucunuzu-bağlayın)
 
 </div>
 
@@ -20,11 +20,11 @@
 
 ## 📥 İndirme / Download JAR
 
-En güncel derlenmiş **v2.0.0** eklenti dosyasını indirmek için aşağıdaki bağlantılardan birini kullanabilirsiniz:
+En güncel derlenmiş **v2.1.0** eklenti dosyasını indirmek için aşağıdaki bağlantılardan birini kullanabilirsiniz:
 
-* 📦 **[burpinho-2.0.0.jar İndir (GitHub Direct)](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-2.0.0.jar)**
-* 📦 **[burpinho-2.0.0.jar Dosyasına Git (GitHub View)](https://github.com/batuhansnl/burpinho/blob/main/releases/burpinho-2.0.0.jar)**
-* 💻 *Lokal dosya yolu:* `releases/burpinho-2.0.0.jar`
+* 📦 **[burpinho-2.1.0.jar İndir (GitHub Direct)](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-2.1.0.jar)**
+* 📦 **[burpinho-2.1.0.jar Dosyasına Git (GitHub View)](https://github.com/batuhansnl/burpinho/blob/main/releases/burpinho-2.1.0.jar)**
+* 💻 *Lokal dosya yolu:* `releases/burpinho-2.1.0.jar`
 
 ---
 

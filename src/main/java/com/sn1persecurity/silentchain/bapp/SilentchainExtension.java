@@ -29,7 +29,7 @@ import java.util.Set;
 public class SilentchainExtension implements BurpExtension {
 
     public static final String EXTENSION_NAME = "burpinho - Local AI Security";
-    public static final String EXTENSION_VERSION = "2.0.0";
+    public static final String EXTENSION_VERSION = "2.1.0";
 
     @Override
     public void initialize(MontoyaApi api) {
