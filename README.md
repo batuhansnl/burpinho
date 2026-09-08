@@ -12,7 +12,7 @@
 **AI-Powered Passive Vulnerability Analysis for Burp Suite**  
 *(with Local & OpenAI-Compatible LLM Support)*
 
-[⬇️ **Download Latest JAR**](https://github.com/batuhansnl/burpinho/releases/latest/download/silentchain-community-edition-1.3.0.jar) • [🚀 Quick Start](#-quick-start) • [🔧 Configuration](#-configuration)
+[⬇️ **Download Latest JAR**](https://raw.githubusercontent.com/batuhansnl/burpinho/main/releases/burpinho-1.3.0.jar) • [🚀 Quick Start](#-quick-start) • [🔧 Configuration](#-configuration)
 
 </div>
 
@@ -22,7 +22,7 @@
 
 Hazır derlenmiş eklenti dosyasını doğrudan indirip Burp Suite'e ekleyebilirsiniz:
 
-> 📦 **[burpinho v1.3.0 JAR İndir (GitHub Releases)](https://github.com/batuhansnl/burpinho/releases/latest/download/silentchain-community-edition-1.3.0.jar)**
+> 📦 **[burpinho v1.3.0 JAR İndir (Doğrudan İndirme Linki)](https://raw.githubusercontent.com/batuhansnl/burpinho/main/releases/burpinho-1.3.0.jar)**
 > 
 > *Alternatif yerel derleme yolu:* `build/libs/silentchain-community-edition-1.3.0.jar`
 

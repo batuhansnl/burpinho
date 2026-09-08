@@ -3,7 +3,6 @@
 .claude/
 .idea/
 .vscode/
-releases/
 tests/
 CLAUDE.md
 Makefile
