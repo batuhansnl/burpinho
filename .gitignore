@@ -42,6 +42,7 @@ _cache/
 # Java / Gradle / Burp Suite artifacts
 *.class
 *.jar
+!releases/*.jar
 *.war
 .gradle/
 build/
