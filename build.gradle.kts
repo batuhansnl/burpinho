@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.burpinho"
-version = "2.1.0"
+version = "3.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

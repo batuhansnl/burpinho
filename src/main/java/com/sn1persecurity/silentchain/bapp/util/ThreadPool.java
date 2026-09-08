@@ -11,8 +11,8 @@ public class ThreadPool {
 
     public ThreadPool() {
         AtomicInteger counter = new AtomicInteger();
-        this.executor = Executors.newFixedThreadPool(2, r -> {
-            Thread t = new Thread(r, "silentchain-ai-" + counter.incrementAndGet());
+        this.executor = Executors.newFixedThreadPool(6, r -> {
+            Thread t = new Thread(r, "burpinho-worker-" + counter.incrementAndGet());
             t.setDaemon(true);
             return t;
         });

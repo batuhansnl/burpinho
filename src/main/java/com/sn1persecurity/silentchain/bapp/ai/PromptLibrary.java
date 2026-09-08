@@ -133,7 +133,7 @@ public class PromptLibrary {
     }
 
     private static String fallbackSystemPrompt() {
-        return "You are SILENTCHAIN, an offensive-security AI analyzing HTTP traffic for web " +
+        return "You are burpinho, an offensive-security AI analyzing HTTP traffic for web " +
                 "vulnerabilities (OWASP Top 10 2021, CWE Top 25). Examine EACH request parameter " +
                 "for injection (SQLi, command, path traversal/LFI, open redirect) and reflected XSS, " +
                 "and check authentication, access control (IDOR/open redirect), CSRF token presence " +

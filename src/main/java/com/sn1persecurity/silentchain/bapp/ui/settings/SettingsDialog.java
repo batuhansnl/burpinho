@@ -10,6 +10,8 @@ import com.sn1persecurity.silentchain.bapp.state.ScanState;
 import com.sn1persecurity.silentchain.bapp.state.TaskRegistry;
 import com.sn1persecurity.silentchain.bapp.ui.dialogs.DataConsentDialog;
 
+import com.sn1persecurity.silentchain.bapp.tools.ToolRegistry;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -19,8 +21,8 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 
 /**
- * Modal Settings dialog (Community silentchain_ai_community.py:1314-1698):
- * 750x650, JTabbedPane of "AI Provider" + "Advanced", Save / Cancel.
+ * Modal Settings dialog:
+ * JTabbedPane of "AI Provider" + "Tools" + "Advanced", Save / Cancel.
  */
 public class SettingsDialog {
 
@@ -31,6 +33,7 @@ public class SettingsDialog {
 
     private final JDialog dialog;
     private final AiProviderTab aiTab;
+    private final ToolsTab toolsTab;
     private final AdvancedTab advancedTab;
 
     public SettingsDialog(Window parent,
@@ -40,6 +43,7 @@ public class SettingsDialog {
                           AiDispatcher dispatcher,
                           ScanState scanState,
                           TaskRegistry taskRegistry,
+                          ToolRegistry toolRegistry,
                           Runnable onSaved) {
         this.api = api;
         this.settings = settings;
@@ -47,10 +51,12 @@ public class SettingsDialog {
         this.onSaved = onSaved;
 
         this.aiTab = new AiProviderTab(settings, dispatcher);
+        this.toolsTab = new ToolsTab(toolRegistry);
         this.advancedTab = new AdvancedTab(settings, scanState, taskRegistry);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("AI Provider", aiTab);
+        tabs.addTab("Tools", toolsTab);
         tabs.addTab("Advanced", advancedTab);
 
         JButton saveBtn = new JButton("Save");
@@ -71,9 +77,10 @@ public class SettingsDialog {
         dialog.setLocationRelativeTo(parent);
     }
 
-    /** Reload both tabs from the live settings and show the modal. */
+    /** Reload tabs from the live settings and show the modal. */
     public void showDialog() {
         aiTab.load();
+        toolsTab.load();
         advancedTab.load();
         dialog.setVisible(true);
     }

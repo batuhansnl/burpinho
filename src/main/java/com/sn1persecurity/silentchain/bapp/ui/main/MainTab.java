@@ -10,11 +10,15 @@ import com.sn1persecurity.silentchain.bapp.state.FindingsRegistry;
 import com.sn1persecurity.silentchain.bapp.state.ScanState;
 import com.sn1persecurity.silentchain.bapp.state.TaskRegistry;
 import com.sn1persecurity.silentchain.bapp.ui.dialogs.DataConsentDialog;
+import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.ScannerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.Timer;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -22,17 +26,18 @@ import java.awt.Desktop;
 import java.net.URI;
 
 /**
- * Root SILENTCHAIN tab — assembles the Community-style single-tab layout and
- * drives a 1.5s refresh timer over the live state.
+ * Root burpinho tab — tabbed layout with modules:
+ *   Tab 1: Passive AI Analysis (original layout)
+ *   Tab 2: Recon (real tools: subfinder, httpx, naabu, etc.)
+ *   Tab 3: Scanner (real tools: nuclei, dalfox, sqlmap, etc.)
+ *   Tab 4: Report (HTML report generation)
  *
- * Layout:
+ * The original passive analysis tab is kept with:
  *   NORTH  : header + statistics + runtime status + control bar
  *   CENTER : vertical split — active tasks (top) / findings (bottom)
  *   SOUTH  : console pane
  */
 public class MainTab extends JPanel implements ControlBar.Actions {
-
-    private static final String UPGRADE_URL = "https://silentchain.ai/?referral=silentchain_bapp";
 
     private final MontoyaApi api;
     private final Settings settings;
@@ -48,6 +53,12 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     private final TaskTablePanel taskTablePanel;
     private final FindingsTablePanel findingsTablePanel;
     private final ConsolePane consolePane;
+
+    // Module panels (set after construction via setters)
+    private ReconPanel reconPanel;
+    private ScannerPanel scannerPanel;
+    private ReportPanel reportPanel;
+    private JTabbedPane moduleTabs;
 
     public MainTab(MontoyaApi api,
                    Settings settings,
@@ -71,6 +82,9 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         this.findingsTablePanel = new FindingsTablePanel(findingsRegistry);
         this.consolePane = new ConsolePane(settings.theme());
 
+        // ---- Build passive analysis panel (original layout) ----
+        JPanel passivePanel = new JPanel(new BorderLayout());
+
         JPanel north = new JPanel();
         north.setLayout(new BoxLayout(north, BoxLayout.Y_AXIS));
         north.add(new MainHeader());
@@ -82,9 +96,16 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         center.setResizeWeight(0.4);
         center.setDividerLocation(220);
 
-        add(north, BorderLayout.NORTH);
-        add(center, BorderLayout.CENTER);
-        add(consolePane, BorderLayout.SOUTH);
+        passivePanel.add(north, BorderLayout.NORTH);
+        passivePanel.add(center, BorderLayout.CENTER);
+        passivePanel.add(consolePane, BorderLayout.SOUTH);
+
+        // ---- Build tabbed pane ----
+        moduleTabs = new JTabbedPane();
+        moduleTabs.addTab("Passive AI", passivePanel);
+        // Recon, Scanner, Report tabs are added via setModulePanels()
+
+        add(moduleTabs, BorderLayout.CENTER);
 
         // Bridge the console log so ScanState.info/debug/error mirror into the pane.
         scanState.setConsoleSink(consolePane::append);
@@ -92,6 +113,24 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         startRefreshTimer();
         refreshNow();
     }
+
+    /**
+     * Wire the module panels after construction (called from SilentchainExtension).
+     * This avoids circular dependency during initialization.
+     */
+    public void setModulePanels(ReconPanel recon, ScannerPanel scanner, ReportPanel report) {
+        this.reconPanel = recon;
+        this.scannerPanel = scanner;
+        this.reportPanel = report;
+        moduleTabs.addTab("Recon", recon);
+        moduleTabs.addTab("Scanner", scanner);
+        moduleTabs.addTab("Report", report);
+    }
+
+    /** Get the recon panel for context menu integration. */
+    public ReconPanel getReconPanel() { return reconPanel; }
+    /** Get the scanner panel for context menu integration. */
+    public ScannerPanel getScannerPanel() { return scannerPanel; }
 
     private void startRefreshTimer() {
         Timer timer = new Timer(1500, e -> refreshNow());
@@ -139,7 +178,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         // Consent gate when enabling passive analysis.
         if (now && !DataConsentDialog.ensureConsent(api, persistence)) {
             controlBar.refresh();
-            scanState.info("SILENTCHAIN: scanning not started (consent declined).");
+            scanState.info("burpinho: scanning not started (consent declined).");
             return;
         }
 
@@ -147,21 +186,21 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         persistence.save(settings);
         controlBar.refresh();
         runtimeStatusLine.refresh();
-        scanState.info("SILENTCHAIN: passive scanning " + (now ? "STARTED" : "STOPPED") + ".");
+        scanState.info("burpinho: passive scanning " + (now ? "STARTED" : "STOPPED") + ".");
     }
 
     @Override
     public void onClearCompleted() {
         int removed = taskRegistry.clearCompleted();
         taskTablePanel.refresh();
-        scanState.info("SILENTCHAIN: cleared " + removed + " completed task(s).");
+        scanState.info("burpinho: cleared " + removed + " completed task(s).");
     }
 
     @Override
     public void onCancelAll() {
         int cancelled = taskRegistry.cancelAll();
         taskTablePanel.refresh();
-        scanState.info("SILENTCHAIN: cancelled " + cancelled + " task(s).");
+        scanState.info("burpinho: cancelled " + cancelled + " task(s).");
     }
 
     @Override
@@ -169,37 +208,29 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         boolean paused = scanState.togglePaused();
         controlBar.refresh();
         runtimeStatusLine.refresh();
-        scanState.info("SILENTCHAIN: tasks " + (paused ? "PAUSED" : "RESUMED") + ".");
+        scanState.info("burpinho: tasks " + (paused ? "PAUSED" : "RESUMED") + ".");
     }
 
     @Override
     public void onExportCsv() {
         String path = CsvExporter.export(this, findingsRegistry);
         if (path != null) {
-            scanState.info("SILENTCHAIN: exported findings to " + path);
+            scanState.info("burpinho: exported findings to " + path);
         } else {
-            scanState.info("SILENTCHAIN: CSV export cancelled or failed.");
+            scanState.info("burpinho: CSV export cancelled or failed.");
         }
     }
 
     @Override
-    public void onUpgrade() {
-        try {
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().browse(new URI(UPGRADE_URL));
-            }
-        } catch (Throwable t) {
-            api.logging().logToError("Failed to open upgrade page: " + t.getMessage());
+    public void onToolStatus() {
+        // Switch to Recon tab to show tool status via settings
+        if (settingsOpener != null) {
+            settingsOpener.run();
         }
     }
 
     /** Convenience for registration. */
     public JComponent component() {
         return this;
-    }
-
-    @SuppressWarnings("unused")
-    private static Component noop() {
-        return null;
     }
 }

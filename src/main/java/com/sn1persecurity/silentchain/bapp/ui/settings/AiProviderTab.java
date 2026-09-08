@@ -135,7 +135,7 @@ public class AiProviderTab extends JPanel {
                         ? "No models returned (check URL / key)."
                         : models.size() + " models loaded.");
             });
-        }, "silentchain-models").start();
+        }, "burpinho-models").start();
     }
 
     private void onTestConnection() {
@@ -149,7 +149,7 @@ public class AiProviderTab extends JPanel {
                 testBtn.setEnabled(true);
                 statusLabel.setText((result.success() ? "OK: " : "FAILED: ") + result.message());
             });
-        }, "silentchain-test").start();
+        }, "burpinho-test").start();
     }
 
     // ---- Helpers ------------------------------------------------------------

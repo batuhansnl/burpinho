@@ -12,7 +12,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 
 /**
- * Row of control buttons (Community silentchain_ai_community.py:508-545).
+ * Row of control buttons for the passive analysis tab.
  */
 public class ControlBar extends JPanel {
 
@@ -24,7 +24,7 @@ public class ControlBar extends JPanel {
         void onCancelAll();
         void onTogglePause();
         void onExportCsv();
-        void onUpgrade();
+        void onToolStatus();
     }
 
     private final Settings settings;
@@ -57,8 +57,8 @@ public class ControlBar extends JPanel {
         JButton exportBtn = new JButton("Export CSV");
         exportBtn.addActionListener(e -> actions.onExportCsv());
 
-        JButton upgradeBtn = colored(new JButton("Upgrade to Professional"), Theme.ACCENT_ORANGE, Color.WHITE);
-        upgradeBtn.addActionListener(e -> actions.onUpgrade());
+        JButton toolStatusBtn = colored(new JButton("Tool Status"), Theme.ACCENT_ORANGE, Color.WHITE);
+        toolStatusBtn.addActionListener(e -> actions.onToolStatus());
 
         add(settingsBtn);
         add(scanningBtn);
@@ -66,7 +66,7 @@ public class ControlBar extends JPanel {
         add(cancelBtn);
         add(pauseBtn);
         add(exportBtn);
-        add(upgradeBtn);
+        add(toolStatusBtn);
 
         refresh();
     }
@@ -95,3 +95,4 @@ public class ControlBar extends JPanel {
         b.setBorderPainted(false);
     }
 }
+
