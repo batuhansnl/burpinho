@@ -109,21 +109,16 @@ public class AiProviderTab extends JPanel {
 
     private void applyEnablement() {
         ProviderId p = selectedProvider();
-        boolean burpAi = p == ProviderId.BURP_AI;
-        boolean azure = p == ProviderId.AZURE_FOUNDRY;
+        boolean isOllama = p == ProviderId.OLLAMA;
 
-        apiUrl.setEnabled(!burpAi);
-        apiKey.setEnabled(!burpAi && p != ProviderId.OLLAMA);
-        modelCombo.setEnabled(!burpAi);
-        refreshBtn.setEnabled(!burpAi && !azure);
-        maxTokens.setEnabled(!burpAi);
-        azureApiVersion.setEnabled(azure);
+        apiUrl.setEnabled(true);
+        apiKey.setEnabled(!isOllama);
+        modelCombo.setEnabled(true);
+        refreshBtn.setEnabled(true);
+        maxTokens.setEnabled(true);
+        azureApiVersion.setVisible(false);
 
-        if (burpAi) {
-            statusLabel.setText("Burp AI runs in-process and uses your Burp AI Credits.");
-        } else {
-            statusLabel.setText(" ");
-        }
+        statusLabel.setText("Configured for " + p.displayName() + ".");
     }
 
     private void onRefreshModels() {
@@ -229,15 +224,12 @@ public class AiProviderTab extends JPanel {
 
     private void addHelp(int row) {
         JTextArea help = new JTextArea(
-                "Provider notes:\n" +
-                "  - Burp AI: default; in-process; uses Burp AI Credits; no key needed.\n" +
-                "  - Ollama: local; default http://localhost:11434; no key.\n" +
-                "  - OpenAI (Local/Cloud): https://api.openai.com/v1 or http://<local-ip>:<port>/v1;\n" +
-                "    API key is optional for local OpenAI-compatible endpoints.\n" +
-                "  - Claude: https://api.anthropic.com/v1; x-api-key.\n" +
-                "  - Gemini: https://generativelanguage.googleapis.com/v1; key in query.\n" +
-                "  - Azure Foundry: https://<resource>.openai.azure.com; api-key header;\n" +
-                "    'Model' is the deployment name; set the API version.");
+                "🧙‍♂️ burpinho Local LLM Notes:\n" +
+                "  - OpenAI Compatible (Local): http://<ip>:<port>/v1 or https://<domain>/v1\n" +
+                "    (vLLM, TGI, LocalAI, LM Studio, etc. API Key is optional).\n" +
+                "  - Ollama (Local): http://localhost:11434 (No API Key needed).\n" +
+                "  - Internal corporate self-signed TLS certificates are supported automatically.\n" +
+                "  - DataSanitizer redacts PII/tokens before analysis.");
         help.setEditable(false);
         help.setOpaque(false);
         help.setBorder(null);

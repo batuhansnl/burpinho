@@ -24,13 +24,13 @@ public class MainHeader extends JPanel {
         setBorder(new EmptyBorder(8, 10, 4, 10));
         setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel title = new JLabel(SilentchainExtension.EXTENSION_NAME
+        JLabel title = new JLabel("🧙‍♂️ " + SilentchainExtension.EXTENSION_NAME
                 + " v" + SilentchainExtension.EXTENSION_VERSION);
         title.setFont(new Font(Font.MONOSPACED, Font.BOLD, 16));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setHorizontalAlignment(JLabel.CENTER);
 
-        JLabel tagline = new JLabel("AI-Powered OWASP Top 10 Vulnerability Scanning for Burp Suite");
+        JLabel tagline = new JLabel("Local & Private AI Vulnerability Scanner for Burp Suite");
         tagline.setFont(new Font(Font.DIALOG, Font.ITALIC, 12));
         tagline.setForeground(Theme.ACCENT_ORANGE);
         tagline.setAlignmentX(Component.CENTER_ALIGNMENT);

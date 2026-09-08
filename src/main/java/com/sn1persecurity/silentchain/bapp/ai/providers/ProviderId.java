@@ -1,20 +1,11 @@
 package com.sn1persecurity.silentchain.bapp.ai.providers;
 
 /**
- * Provider identifiers + Community-style default endpoint URLs
- * (ported from silentchain_ai_community.py:1341-1370).
- *
- * Order matters: this is the order shown in the Settings dialog dropdown,
- * with BURP_AI first so it is the default selection per PortSwigger
- * BApp AI guidelines.
+ * Provider identifiers focused on Local LLMs (OpenAI-compatible and Ollama).
  */
 public enum ProviderId {
-    BURP_AI       ("Burp AI",        ""),
-    OLLAMA        ("Ollama",         "http://localhost:11434"),
-    OPENAI        ("OpenAI",         "https://api.openai.com/v1"),
-    CLAUDE        ("Claude",         "https://api.anthropic.com/v1"),
-    GEMINI        ("Gemini",         "https://generativelanguage.googleapis.com/v1"),
-    AZURE_FOUNDRY ("Azure Foundry",  "https://YOUR-RESOURCE.openai.azure.com");
+    OPENAI        ("OpenAI Compatible (Local/Custom)",  "http://localhost:8000/v1"),
+    OLLAMA        ("Ollama (Local)",                   "http://localhost:11434");
 
     private final String displayName;
     private final String defaultUrl;
@@ -28,12 +19,12 @@ public enum ProviderId {
     public String defaultUrl() { return defaultUrl; }
 
     public static ProviderId fromDisplayName(String name) {
-        if (name == null) return BURP_AI;
+        if (name == null) return OPENAI;
         for (ProviderId p : values()) {
-            if (p.displayName.equalsIgnoreCase(name.trim())) {
+            if (p.displayName.equalsIgnoreCase(name.trim()) || p.name().equalsIgnoreCase(name.trim())) {
                 return p;
             }
         }
-        return BURP_AI;
+        return OPENAI;
     }
 }

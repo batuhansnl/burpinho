@@ -28,8 +28,8 @@ import java.util.Set;
 
 public class SilentchainExtension implements BurpExtension {
 
-    public static final String EXTENSION_NAME = "SILENTCHAIN Community Edition";
-    public static final String EXTENSION_VERSION = "1.3.0";
+    public static final String EXTENSION_NAME = "burpinho - Local AI Security";
+    public static final String EXTENSION_VERSION = "2.0.0";
 
     @Override
     public void initialize(MontoyaApi api) {
@@ -75,7 +75,7 @@ public class SilentchainExtension implements BurpExtension {
                     dispatcher, scanState, taskRegistry, mainTab::onSettingsSaved);
             mainTab.setSettingsOpener(settingsDialog::showDialog);
 
-            api.userInterface().registerSuiteTab("SILENTCHAIN Community", mainTab);
+            api.userInterface().registerSuiteTab("burpinho", mainTab);
 
             scanState.info(EXTENSION_NAME + " v" + EXTENSION_VERSION + " ready. Passive scanning is "
                     + (settings.passiveEnabled() ? "ENABLED" : "DISABLED")

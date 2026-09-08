@@ -3,8 +3,8 @@ plugins {
     id("com.gradleup.shadow") version "8.3.5"
 }
 
-group = "com.sn1persecurity.silentchain"
-version = "1.3.0"
+group = "com.burpinho"
+version = "2.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -33,16 +33,16 @@ tasks.named<Test>("test") {
 tasks.named<Jar>("jar") {
     manifest {
         attributes(
-            "Implementation-Title" to "SILENTCHAIN Community Edition",
+            "Implementation-Title" to "burpinho AI Security",
             "Implementation-Version" to project.version,
-            "Implementation-Vendor" to "Sn1persecurity LLC"
+            "Implementation-Vendor" to "burpinho"
         )
     }
 }
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    archiveBaseName.set("silentchain-community-edition")
+    archiveBaseName.set("burpinho")
     minimize()
     mergeServiceFiles()
 }

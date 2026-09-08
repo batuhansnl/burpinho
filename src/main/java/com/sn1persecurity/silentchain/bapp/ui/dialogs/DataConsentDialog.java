@@ -23,36 +23,20 @@ import java.awt.Font;
  */
 public final class DataConsentDialog {
 
-    private static final String TITLE = "SILENTCHAIN — Data Handling Consent";
+    private static final String TITLE = "burpinho — Data Handling & Privacy Notice";
 
     private static final String BODY =
             "<html><body style='margin:4px;'>" +
-            "<p><b>Enabling AI analysis sends portions of intercepted HTTP traffic " +
-            "to the AI provider you have configured.</b></p>" +
+            "<p><b>burpinho is designed for 100% Private, Local AI Vulnerability Analysis.</b></p>" +
 
-            "<p><b>Burp AI (default provider):</b> traffic is analyzed in-process by " +
-            "PortSwigger's Burp AI service under PortSwigger's data-handling terms. " +
-            "Each analysis consumes <b>Burp AI Credits</b> from your account; usage " +
-            "varies with request and response size.</p>" +
+            "<p><b>Local AI Providers (OpenAI-Compatible & Ollama):</b> All traffic is sent directly " +
+            "to your local or internal company LLM endpoint (e.g. <code>localhost:8000</code> or corporate internal servers). " +
+            "No data leaves your designated network boundaries.</p>" +
 
-            "<p><b>Third-party providers (Ollama / OpenAI / Claude / Gemini / Azure " +
-            "Foundry):</b> if you select one of these, request and response content is " +
-            "transmitted to that provider's endpoint (Ollama is local-only). Billing, " +
-            "data retention, and privacy are governed by that provider's terms.</p>" +
+            "<p><b>DataSanitizer (Auto-Redaction):</b> Even when scanning locally, burpinho automatically " +
+            "masks sensitive tokens, passwords, cookies, and keys before presenting data to the LLM context.</p>" +
 
-            "<p><b>Regulated data:</b> do not submit data subject to HIPAA, PCI-DSS, " +
-            "GDPR, or similar regimes to a cloud AI provider without an appropriate " +
-            "data-processing agreement. Prefer a local provider (Ollama) for such data.</p>" +
-
-            "<p><b>Sanitization:</b> SILENTCHAIN redacts common secrets and PII " +
-            "(API keys, bearer tokens, session cookies, emails) and neutralizes " +
-            "prompt-injection patterns before content is sent. Sanitization is not a " +
-            "guarantee; review your scope and data classification first.</p>" +
-
-            "<p>Safety rails (in-scope-only, per-host rate limit, URL dedup, response " +
-            "size cap) bound how much is sent. You can adjust them in the Advanced tab.</p>" +
-
-            "<p><b>Do you acknowledge the above and want to enable AI analysis?</b></p>" +
+            "<p><b>Do you want to enable passive AI vulnerability analysis with burpinho?</b></p>" +
             "</body></html>";
 
     private DataConsentDialog() {}

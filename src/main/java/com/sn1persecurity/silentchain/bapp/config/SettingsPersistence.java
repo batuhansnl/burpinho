@@ -99,7 +99,7 @@ public class SettingsPersistence {
         try {
             return ProviderId.valueOf(name);
         } catch (Throwable t) {
-            return ProviderId.BURP_AI;
+            return ProviderId.OPENAI;
         }
     }
 

@@ -2,10 +2,6 @@ package com.sn1persecurity.silentchain.bapp.ai;
 
 import burp.api.montoya.MontoyaApi;
 
-import com.sn1persecurity.silentchain.bapp.ai.providers.AzureFoundryProvider;
-import com.sn1persecurity.silentchain.bapp.ai.providers.BurpAiProvider;
-import com.sn1persecurity.silentchain.bapp.ai.providers.ClaudeProvider;
-import com.sn1persecurity.silentchain.bapp.ai.providers.GeminiProvider;
 import com.sn1persecurity.silentchain.bapp.ai.providers.LlmProvider;
 import com.sn1persecurity.silentchain.bapp.ai.providers.OllamaProvider;
 import com.sn1persecurity.silentchain.bapp.ai.providers.OpenAiProvider;
@@ -36,12 +32,8 @@ public class AiDispatcher {
         this.settings = settings;
         this.threadPool = threadPool;
 
-        providers.put(ProviderId.BURP_AI,       new BurpAiProvider(api));
-        providers.put(ProviderId.OLLAMA,        new OllamaProvider(api, http, settings));
-        providers.put(ProviderId.OPENAI,        new OpenAiProvider(api, http, settings));
-        providers.put(ProviderId.CLAUDE,        new ClaudeProvider(api, http, settings));
-        providers.put(ProviderId.GEMINI,        new GeminiProvider(api, http, settings));
-        providers.put(ProviderId.AZURE_FOUNDRY, new AzureFoundryProvider(api, http, settings));
+        providers.put(ProviderId.OPENAI, new OpenAiProvider(api, http, settings));
+        providers.put(ProviderId.OLLAMA, new OllamaProvider(api, http, settings));
     }
 
     public LlmProvider current() {

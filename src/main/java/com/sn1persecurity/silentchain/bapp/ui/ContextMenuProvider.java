@@ -16,7 +16,7 @@ import java.util.List;
 
 public class ContextMenuProvider implements ContextMenuItemsProvider {
 
-    private static final String MENU_LABEL = "Analyze Request (SILENTCHAIN)";
+    private static final String MENU_LABEL = "Analyze Request (burpinho)";
 
     private final MontoyaApi api;
     private final AiService aiService;
@@ -53,13 +53,13 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
     private void dispatch(List<HttpRequestResponse> messages) {
         if (!aiService.isAvailable()) {
             scanState.info(
-                    "SILENTCHAIN: AI provider not available. Configure it in the Settings dialog before analyzing."
+                    "burpinho: AI provider not available. Configure it in the Settings dialog before analyzing."
             );
             return;
         }
 
         scanState.info(
-                "SILENTCHAIN [context-menu]: dispatching " + messages.size() +
+                "burpinho [context-menu]: dispatching " + messages.size() +
                 " message(s) for AI analysis."
         );
 

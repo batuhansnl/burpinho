@@ -35,10 +35,10 @@ public class Settings {
 
     // ---- AI provider config -------------------------------------------------
 
-    private volatile ProviderId provider = ProviderId.BURP_AI;
-    private volatile String apiUrl = "";
+    private volatile ProviderId provider = ProviderId.OPENAI;
+    private volatile String apiUrl = "http://localhost:8000/v1";
     private volatile String apiKey = "";
-    private volatile String model = "";
+    private volatile String model = "Qwen3.5-122B-A10B";
     private volatile int maxTokens = 2048;
     private volatile String azureApiVersion = "2024-06-01";
     private volatile int requestTimeoutSeconds = 60;
@@ -92,7 +92,7 @@ public class Settings {
     public void setUrlDedupCapacity(int v) { this.urlDedupCapacity = Math.max(10, v); }
 
     public ProviderId provider() { return provider; }
-    public void setProvider(ProviderId v) { this.provider = v != null ? v : ProviderId.BURP_AI; }
+    public void setProvider(ProviderId v) { this.provider = v != null ? v : ProviderId.OPENAI; }
 
     public String apiUrl() { return apiUrl; }
     public void setApiUrl(String v) { this.apiUrl = v != null ? v : ""; }
