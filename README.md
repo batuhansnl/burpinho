@@ -12,7 +12,7 @@
 **%100 Yerel, Gizli ve Özel AI Zafiyet Analiz Eklentisi (Burp Suite)**  
 *(OpenAI-Compatible Local LLM & Ollama Odaklı)*
 
-[⬇️ **Download burpinho v2.0.0 JAR**](https://raw.githubusercontent.com/batuhansnl/burpinho/main/releases/burpinho-2.0.0.jar) • [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--quick-start) • [⚙️ Ayarlar](#2-şirket-içi--yerel-llm-sunucunuzu-bağlayın)
+[⬇️ **Download burpinho v2.0.0 JAR**](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-2.0.0.jar) • [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--quick-start) • [⚙️ Ayarlar](#2-şirket-içi--yerel-llm-sunucunuzu-bağlayın)
 
 </div>
 
@@ -20,11 +20,11 @@
 
 ## 📥 İndirme / Download JAR
 
-En güncel derlenmiş **v2.0.0** eklenti dosyasını doğrudan indirip Burp Suite'e ekleyebilirsiniz:
+En güncel derlenmiş **v2.0.0** eklenti dosyasını indirmek için aşağıdaki bağlantılardan birini kullanabilirsiniz:
 
-> 📦 **[burpinho-2.0.0.jar İndir (Doğrudan İndirme Linki)](https://raw.githubusercontent.com/batuhansnl/burpinho/main/releases/burpinho-2.0.0.jar)**
-> 
-> *Alternatif yerel dosya yolu:* `releases/burpinho-2.0.0.jar`
+* 📦 **[burpinho-2.0.0.jar İndir (GitHub Direct)](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-2.0.0.jar)**
+* 📦 **[burpinho-2.0.0.jar Dosyasına Git (GitHub View)](https://github.com/batuhansnl/burpinho/blob/main/releases/burpinho-2.0.0.jar)**
+* 💻 *Lokal dosya yolu:* `releases/burpinho-2.0.0.jar`
 
 ---
 
