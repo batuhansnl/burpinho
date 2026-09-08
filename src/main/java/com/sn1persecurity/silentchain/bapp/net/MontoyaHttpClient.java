@@ -59,9 +59,8 @@ public class MontoyaHttpClient {
 
     private HttpReply send(HttpRequest request) {
         try {
-            RequestOptions options = isHttps(request.url()) 
-                    ? RequestOptions.requestOptions().withUpstreamTLSVerification()
-                    : RequestOptions.requestOptions();
+            // Allow internal / self-signed TLS certificates for corporate local LLMs
+            RequestOptions options = RequestOptions.requestOptions();
             HttpRequestResponse rr = api.http().sendRequest(request, options);
             HttpResponse resp = rr.response();
             if (resp == null) {
