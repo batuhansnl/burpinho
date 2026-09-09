@@ -11,6 +11,7 @@ import com.sn1persecurity.silentchain.bapp.state.ScanState;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ExploitPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.FuzzerPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.IpScanPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.JwtPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.VulnScannerPanel;
@@ -39,6 +40,7 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
     private SqliPanel sqliPanel;
     private FuzzerPanel fuzzerPanel;
     private ExploitPanel exploitPanel;
+    private JwtPanel jwtPanel;
 
     public ContextMenuProvider(MontoyaApi api, AiService aiService,
                                AnalysisOrchestrator orchestrator, ScanState scanState) {
@@ -55,7 +57,8 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
                                 XssPanel xss,
                                 SqliPanel sqli,
                                 FuzzerPanel fuzzer,
-                                ExploitPanel exploit) {
+                                ExploitPanel exploit,
+                                JwtPanel jwt) {
         this.reconPanel = recon;
         this.ipScanPanel = ipScan;
         this.vulnScannerPanel = vulnScanner;
@@ -63,6 +66,7 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         this.sqliPanel = sqli;
         this.fuzzerPanel = fuzzer;
         this.exploitPanel = exploit;
+        this.jwtPanel = jwt;
     }
 
     @Override
@@ -117,6 +121,13 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         JMenuItem exploitItem = new JMenuItem("💥 Send URL to Exploit & PoC Generator");
         exploitItem.addActionListener(e -> dispatchExploit(selected));
         menu.add(exploitItem);
+
+        menu.addSeparator();
+
+        // 9. JWT Attack
+        JMenuItem jwtItem = new JMenuItem("🔐 Send to JWT Attacker (Auto-Detect)");
+        jwtItem.addActionListener(e -> dispatchJwt(selected));
+        menu.add(jwtItem);
 
         return List.of(menu);
     }
@@ -202,6 +213,26 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         if (url != null) {
             SwingUtilities.invokeLater(() -> exploitPanel.setQuery("Web Vulnerability", url));
             scanState.info("burpinho [context-menu]: Target URL set to " + url + " in Exploit tab.");
+        }
+    }
+
+    private void dispatchJwt(List<HttpRequestResponse> messages) {
+        if (jwtPanel == null) return;
+        for (HttpRequestResponse rr : messages) {
+            if (rr.request() != null) {
+                String rawRequest = rr.request().toString();
+                String jwt = com.sn1persecurity.silentchain.bapp.modules.jwt.JwtToken.extractFromRequest(rawRequest);
+                if (jwt != null) {
+                    SwingUtilities.invokeLater(() -> jwtPanel.setToken(jwt));
+                    scanState.info("burpinho [context-menu]: JWT token auto-detected and sent to JWT Attack tab.");
+                    return;
+                }
+            }
+        }
+        // Fallback: send full request
+        String url = extractFirstUrl(messages);
+        if (url != null) {
+            scanState.info("burpinho [context-menu]: No JWT detected in request. Open JWT tab and paste token manually.");
         }
     }
 

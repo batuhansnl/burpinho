@@ -13,6 +13,7 @@ import com.sn1persecurity.silentchain.bapp.ui.dialogs.DataConsentDialog;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ExploitPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.FuzzerPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.IpScanPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.JwtPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
@@ -28,7 +29,7 @@ import javax.swing.Timer;
 import java.awt.BorderLayout;
 
 /**
- * Root burpinho tab — tabbed layout with 9 dedicated modules:
+ * Root burpinho tab — tabbed layout with 10 dedicated modules:
  *   Tab 1: Passive AI
  *   Tab 2: Recon (Subdomain & IP)
  *   Tab 3: IP & Network Scanner
@@ -38,6 +39,7 @@ import java.awt.BorderLayout;
  *   Tab 7: Path Fuzzer
  *   Tab 8: Exploit & PoC Advisor
  *   Tab 9: Report Generator
+ *   Tab 10: JWT Attack
  */
 public class MainTab extends JPanel implements ControlBar.Actions {
 
@@ -65,6 +67,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     private FuzzerPanel fuzzerPanel;
     private ExploitPanel exploitPanel;
     private ReportPanel reportPanel;
+    private JwtPanel jwtPanel;
     private final JTabbedPane moduleTabs;
 
     public MainTab(MontoyaApi api,
@@ -130,7 +133,8 @@ public class MainTab extends JPanel implements ControlBar.Actions {
                                 SqliPanel sqli,
                                 FuzzerPanel fuzzer,
                                 ExploitPanel exploit,
-                                ReportPanel report) {
+                                ReportPanel report,
+                                JwtPanel jwt) {
         this.reconPanel = recon;
         this.ipScanPanel = ipScan;
         this.vulnScannerPanel = vulnScanner;
@@ -139,6 +143,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         this.fuzzerPanel = fuzzer;
         this.exploitPanel = exploit;
         this.reportPanel = report;
+        this.jwtPanel = jwt;
 
         moduleTabs.addTab("Recon (Subdomain & IP)", recon);
         moduleTabs.addTab("IP & Network Scanner", ipScan);
@@ -148,6 +153,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         moduleTabs.addTab("Path Fuzzer", fuzzer);
         moduleTabs.addTab("Exploit & PoC", exploit);
         moduleTabs.addTab("Report Generator", report);
+        moduleTabs.addTab("JWT Attack", jwt);
     }
 
     public ReconPanel getReconPanel()               { return reconPanel; }
@@ -158,6 +164,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     public FuzzerPanel getFuzzerPanel()             { return fuzzerPanel; }
     public ExploitPanel getExploitPanel()           { return exploitPanel; }
     public ReportPanel getReportPanel()             { return reportPanel; }
+    public JwtPanel getJwtPanel()                   { return jwtPanel; }
 
     public void switchToTab(int index) {
         if (index >= 0 && index < moduleTabs.getTabCount()) {
@@ -253,9 +260,9 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     @Override
     public void onToolStatus() {
         JOptionPane.showMessageDialog(this,
-                "burpinho v3.2.0 — 100% Self-Contained Pure Java Architecture.\n\n" +
+                "burpinho v4.0.0 — 100% Self-Contained Pure Java Architecture.\n\n" +
                 "All core engines (Recon, IP/CIDR Scanner, Vulnerability Scanner, XSS,\n" +
-                "SQLi, Path Fuzzer, and Reports) are natively built-in.\n" +
+                "SQLi, Path Fuzzer, JWT Attack, and Reports) are natively built-in.\n" +
                 "No external Go, Python, or CLI installations required for full operation.",
                 "Tool Status", JOptionPane.INFORMATION_MESSAGE);
     }

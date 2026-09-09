@@ -28,6 +28,7 @@ import com.sn1persecurity.silentchain.bapp.ui.main.MainTab;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ExploitPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.FuzzerPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.IpScanPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.JwtPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
@@ -44,7 +45,7 @@ import java.util.Set;
 public class SilentchainExtension implements BurpExtension {
 
     public static final String EXTENSION_NAME = "burpinho";
-    public static final String EXTENSION_VERSION = "3.2.0";
+    public static final String EXTENSION_VERSION = "4.0.0";
 
     @Override
     public void initialize(MontoyaApi api) {
@@ -111,6 +112,7 @@ public class SilentchainExtension implements BurpExtension {
             SqliPanel sqliPanel = new SqliPanel(api, threadPool, scanState);
             FuzzerPanel fuzzerPanel = new FuzzerPanel(api, threadPool, scanState);
             ExploitPanel exploitPanel = new ExploitPanel(api, exploitModule, threadPool, scanState);
+            JwtPanel jwtPanel = new JwtPanel(api, threadPool, scanState);
             ReportPanel reportPanel = new ReportPanel(api, reportModule, threadPool, scanState,
                     reconPanel::getLastResult, vulnScannerPanel::getLastResult, ipScanPanel::getLastResult);
 
@@ -122,7 +124,8 @@ public class SilentchainExtension implements BurpExtension {
                     sqliPanel,
                     fuzzerPanel,
                     exploitPanel,
-                    reportPanel
+                    reportPanel,
+                    jwtPanel
             );
 
             contextMenu.setModulePanels(
@@ -132,7 +135,8 @@ public class SilentchainExtension implements BurpExtension {
                     xssPanel,
                     sqliPanel,
                     fuzzerPanel,
-                    exploitPanel
+                    exploitPanel,
+                    jwtPanel
             );
 
             SettingsDialog settingsDialog = new SettingsDialog(parent, api, settings, persistence,
