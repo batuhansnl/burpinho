@@ -39,6 +39,7 @@ public class JwtPanel extends JPanel {
             int id,
             String severity,
             String attackName,
+            String httpStatus,
             String fullModifiedToken,
             String status,
             String details
@@ -275,7 +276,7 @@ public class JwtPanel extends JPanel {
         add(topCombined, BorderLayout.NORTH);
 
         // ========== SECTION 3: Results Table ==========
-        String[] columnNames = {"#", "Severity", "Saldırı Türü", "Değiştirilmiş Token", "Durum", "Detaylar"};
+        String[] columnNames = {"#", "Severity", "Saldırı Türü", "HTTP Kodu", "Değiştirilmiş Token", "Durum", "Detaylar"};
         resultsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -283,13 +284,15 @@ public class JwtPanel extends JPanel {
         resultsTable.setRowSorter(new TableRowSorter<>(resultsModel));
 
         resultsTable.getColumnModel().getColumn(0).setMaxWidth(45);
-        resultsTable.getColumnModel().getColumn(1).setPreferredWidth(80);
-        resultsTable.getColumnModel().getColumn(1).setMaxWidth(100);
-        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(200);
-        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(250);
-        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(100);
-        resultsTable.getColumnModel().getColumn(4).setMaxWidth(130);
-        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(350);
+        resultsTable.getColumnModel().getColumn(1).setPreferredWidth(75);
+        resultsTable.getColumnModel().getColumn(1).setMaxWidth(95);
+        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(180);
+        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(85);
+        resultsTable.getColumnModel().getColumn(3).setMaxWidth(100);
+        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(320);
+        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(95);
+        resultsTable.getColumnModel().getColumn(5).setMaxWidth(125);
+        resultsTable.getColumnModel().getColumn(6).setPreferredWidth(300);
 
         // Severity color renderer
         resultsTable.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
@@ -311,8 +314,34 @@ public class JwtPanel extends JPanel {
             }
         });
 
+        // HTTP Status code color renderer
+        resultsTable.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean sel, boolean focus, int row, int col) {
+                Component c = super.getTableCellRendererComponent(table, value, sel, focus, row, col);
+                if (!sel && value != null) {
+                    String statusStr = value.toString().trim();
+                    if (statusStr.startsWith("2")) {
+                        c.setForeground(new Color(63, 185, 80)); // Green (OK / Bypass)
+                        setFont(getFont().deriveFont(Font.BOLD));
+                    } else if (statusStr.startsWith("3")) {
+                        c.setForeground(new Color(88, 166, 255)); // Blue (Redirect)
+                        setFont(getFont().deriveFont(Font.BOLD));
+                    } else if (statusStr.startsWith("4")) {
+                        c.setForeground(new Color(255, 166, 87)); // Orange (401/403)
+                    } else if (statusStr.startsWith("5")) {
+                        c.setForeground(new Color(248, 81, 73)); // Red (500 Server Error)
+                        setFont(getFont().deriveFont(Font.BOLD));
+                    } else {
+                        c.setForeground(new Color(139, 148, 158)); // Gray / N/A
+                    }
+                }
+                return c;
+            }
+        });
+
         // Status color renderer
-        resultsTable.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
+        resultsTable.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean sel, boolean focus, int row, int col) {
                 Component c = super.getTableCellRendererComponent(table, value, sel, focus, row, col);
@@ -346,7 +375,7 @@ public class JwtPanel extends JPanel {
         copyToken.addActionListener(e -> onCopyFullToken());
 
         JMenuItem copyDetails = new JMenuItem("📋 Saldırı Detaylarını Kopyala");
-        copyDetails.addActionListener(e -> copyCell(5));
+        copyDetails.addActionListener(e -> copyCell(6));
 
         JMenuItem copyCurl = new JMenuItem("💻 cURL Komutu Olarak Kopyala");
         copyCurl.addActionListener(e -> onCopyCurl());
@@ -528,18 +557,17 @@ public class JwtPanel extends JPanel {
             if ("CRITICAL".equals(r.severity()) || "HIGH".equals(r.severity())) criticalCount++;
 
             final int id = attackResultsList.size() + 1;
+            final String httpStatus = probeAttackToken(r.modifiedToken());
             AttackResultItem item = new AttackResultItem(
-                    id, r.severity(), r.attackName(), r.modifiedToken(), r.status(), r.details()
+                    id, r.severity(), r.attackName(), httpStatus, r.modifiedToken(), r.status(), r.details()
             );
             attackResultsList.add(item);
 
-            final String truncatedToken = r.modifiedToken().length() > 60
-                    ? r.modifiedToken().substring(0, 60) + "..."
-                    : r.modifiedToken();
+            final String fullToken = r.modifiedToken();
 
             SwingUtilities.invokeLater(() -> {
                 resultsModel.addRow(new Object[]{
-                        id, r.severity(), r.attackName(), truncatedToken, r.status(), r.details()
+                        id, r.severity(), r.attackName(), httpStatus, fullToken, r.status(), r.details()
                 });
             });
         }
@@ -590,9 +618,11 @@ public class JwtPanel extends JPanel {
                 String resignedToken = currentToken.buildSignedHmac(crackedSecret, currentToken.algorithm());
 
                 final int id = attackResultsList.size() + 1;
+                final String httpStatus = probeAttackToken(resignedToken);
                 AttackResultItem item = new AttackResultItem(
                         id, "CRITICAL",
                         "HMAC BF (secret=\"" + crackedSecret + "\")",
+                        httpStatus,
                         resignedToken,
                         "🔥 CRACKED",
                         "Secret kırıldı: \"" + crackedSecret + "\" — " + bfResult.summary()
@@ -603,7 +633,8 @@ public class JwtPanel extends JPanel {
                     resultsModel.addRow(new Object[]{
                             id, "CRITICAL",
                             "HMAC BF (secret=\"" + crackedSecret + "\")",
-                            resignedToken.length() > 60 ? resignedToken.substring(0, 60) + "..." : resignedToken,
+                            httpStatus,
+                            resignedToken,
                             "🔥 CRACKED",
                             "Secret kırıldı: \"" + crackedSecret + "\" — " + bfResult.summary()
                     });
@@ -613,6 +644,7 @@ public class JwtPanel extends JPanel {
                 AttackResultItem item = new AttackResultItem(
                         id, "INFO",
                         "HMAC Brute-Force",
+                        "-",
                         "N/A",
                         "❌ NOT FOUND",
                         bfResult.summary()
@@ -623,6 +655,7 @@ public class JwtPanel extends JPanel {
                     resultsModel.addRow(new Object[]{
                             id, "INFO",
                             "HMAC Brute-Force",
+                            "-",
                             "N/A",
                             "❌ NOT FOUND",
                             bfResult.summary()
@@ -686,7 +719,7 @@ public class JwtPanel extends JPanel {
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
             try (FileWriter fw = new FileWriter(f)) {
-                fw.write("ID,Severity,AttackType,ModifiedToken,Status,Details\n");
+                fw.write("ID,Severity,AttackType,HTTPStatus,ModifiedToken,Status,Details\n");
                 for (int r = 0; r < resultsModel.getRowCount(); r++) {
                     StringBuilder row = new StringBuilder();
                     for (int c = 0; c < resultsModel.getColumnCount(); c++) {
@@ -701,6 +734,41 @@ public class JwtPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    /**
+     * Probes the server with a modified token and returns the live HTTP status code string.
+     */
+    private String probeAttackToken(String token) {
+        if (token == null || token.isEmpty() || "N/A".equals(token) || originalHttpRequest == null) {
+            return "-";
+        }
+        try {
+            HttpRequest requestToSend = null;
+            String rawReq = originalHttpRequest.toString();
+            if (originalRawToken != null && !originalRawToken.isEmpty() && rawReq.contains(originalRawToken)) {
+                String modifiedRaw = rawReq.replace(originalRawToken, token);
+                if (originalHttpRequest.httpService() != null) {
+                    requestToSend = HttpRequest.httpRequest(originalHttpRequest.httpService(), modifiedRaw);
+                } else {
+                    requestToSend = HttpRequest.httpRequest(modifiedRaw);
+                }
+            } else if (originalHttpRequest.hasHeader("Authorization")) {
+                requestToSend = originalHttpRequest.withUpdatedHeader("Authorization", "Bearer " + token);
+            } else {
+                requestToSend = originalHttpRequest.withAddedHeader("Authorization", "Bearer " + token);
+            }
+
+            if (api != null && api.http() != null && requestToSend != null) {
+                burp.api.montoya.http.message.HttpRequestResponse resp = api.http().sendRequest(requestToSend);
+                if (resp != null && resp.response() != null) {
+                    return String.valueOf(resp.response().statusCode());
+                }
+            }
+        } catch (Throwable t) {
+            return "ERR";
+        }
+        return "-";
     }
 
     // =====================================================================
