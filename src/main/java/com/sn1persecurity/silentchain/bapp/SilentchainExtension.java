@@ -38,7 +38,7 @@ import java.util.Set;
 public class SilentchainExtension implements BurpExtension {
 
     public static final String EXTENSION_NAME = "burpinho";
-    public static final String EXTENSION_VERSION = "3.0.0";
+    public static final String EXTENSION_VERSION = "3.1.0";
 
     @Override
     public void initialize(MontoyaApi api) {

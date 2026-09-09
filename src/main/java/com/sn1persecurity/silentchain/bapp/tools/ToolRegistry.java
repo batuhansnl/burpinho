@@ -10,9 +10,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Registry of all supported external security tools.
- * Detects which tools are installed on the system via "which" / "where" commands,
- * and provides metadata (install instructions, category, etc.) for each tool.
+ * Registry of security tools and built-in engines.
+ * burpinho is 100% self-contained and pure Java — every tool has a built-in engine
+ * requiring zero external installation (ideal for locked-down enterprise Windows/Mac/Linux).
+ * If external CLI binaries exist on PATH, they can optionally be used as accelerators.
  */
 public class ToolRegistry {
 
@@ -20,53 +21,45 @@ public class ToolRegistry {
     private final Map<String, String> pathCache = new ConcurrentHashMap<>();
     private volatile boolean scanned = false;
 
-    /** All tools burpinho knows about, keyed by name. */
+    /** All tools and engines burpinho supports, keyed by name. */
     private static final Map<String, ToolInfo> ALL_TOOLS = new LinkedHashMap<>();
 
     static {
-        // ---- RECON ----
-        reg("subfinder",    "Fast passive subdomain enumeration",
-                ToolInfo.Category.RECON, "go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest", true);
-        reg("amass",        "In-depth subdomain enumeration",
-                ToolInfo.Category.RECON, "go install github.com/owasp-amass/amass/v4/...@master", false);
-        reg("assetfinder",  "Find related domains and subdomains",
-                ToolInfo.Category.RECON, "go install github.com/tomnomnom/assetfinder@latest", false);
-        reg("dnsx",         "Fast DNS resolver / brute-forcer",
-                ToolInfo.Category.RECON, "go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest", false);
-        reg("httpx",        "HTTP probe with tech-detect, title, status",
-                ToolInfo.Category.RECON, "go install github.com/projectdiscovery/httpx/cmd/httpx@latest", true);
-        reg("naabu",        "Fast port scanner",
-                ToolInfo.Category.RECON, "go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest", false);
-        reg("katana",       "Web crawler / spider",
-                ToolInfo.Category.RECON, "go install github.com/projectdiscovery/katana/cmd/katana@latest", false);
-        reg("wafw00f",      "WAF detection",
-                ToolInfo.Category.RECON, "pip3 install wafw00f", false);
-        reg("whatweb",      "Web technology fingerprinting",
-                ToolInfo.Category.RECON, "brew install whatweb  OR  apt install whatweb", false);
-        reg("gowitness",    "Website screenshot",
-                ToolInfo.Category.RECON, "go install github.com/sensepost/gowitness@latest", false);
+        // ---- RECON (100% Built-in Pure Java) ----
+        reg("subfinder",    "Passive subdomain enum (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (HackerTarget, crt.sh & DNS Wordlist)", false);
+        reg("dnsx",         "DNS resolution & alive check (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (Multi-threaded Java DNS Resolver)", false);
+        reg("httpx",        "HTTP probe, title, status, server (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (Parallel Java HTTP Prober)", false);
+        reg("naabu",        "Fast port scanner for top ports (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (Multi-threaded Socket Scanner)", false);
+        reg("wafw00f",      "WAF signature detection (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (20+ WAF Header/Cookie Signatures)", false);
+        reg("whatweb",      "Tech stack & CMS fingerprinting (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (40+ Framework & CMS Signatures)", false);
+        reg("katana",       "Web crawler & endpoint spider (Built-in + CLI)",
+                ToolInfo.Category.RECON, "100% Built-in (HTML/JS Recursive Link Extractor)", false);
 
-        // ---- SCANNER ----
-        reg("nuclei",       "Template-based vulnerability scanner",
-                ToolInfo.Category.SCANNER, "go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest", true);
-        reg("dalfox",       "XSS scanner with DOM analysis",
-                ToolInfo.Category.SCANNER, "go install github.com/hahwul/dalfox/v2@latest", false);
-        reg("sqlmap",       "Automatic SQL injection tool",
-                ToolInfo.Category.SCANNER, "pip3 install sqlmap  OR  apt install sqlmap", false);
-        reg("nikto",        "Web server scanner",
-                ToolInfo.Category.SCANNER, "brew install nikto  OR  apt install nikto", false);
-        reg("ffuf",         "Fast web fuzzer",
-                ToolInfo.Category.SCANNER, "go install github.com/ffuf/ffuf/v2@latest", false);
+        // ---- SCANNER (100% Built-in Pure Java) ----
+        reg("nuclei",       "Vulnerability & CVE templates (Built-in + CLI)",
+                ToolInfo.Category.SCANNER, "100% Built-in (50+ Sensitive File & API Exposure Checks)", false);
+        reg("dalfox",       "XSS detection & reflection analysis (Built-in + CLI)",
+                ToolInfo.Category.SCANNER, "100% Built-in (Active XSS Parameter Reflection Engine)", false);
+        reg("sqlmap",       "SQL injection detection (Built-in + CLI)",
+                ToolInfo.Category.SCANNER, "100% Built-in (Error-based & Boolean SQLi Analyzer)", false);
+        reg("nikto",        "Web server security & misconfig (Built-in + CLI)",
+                ToolInfo.Category.SCANNER, "100% Built-in (Security Headers, CORS & Config Probes)", false);
+        reg("ffuf",         "Endpoint fuzzing & discovery (Built-in + CLI)",
+                ToolInfo.Category.SCANNER, "100% Built-in (Embedded Wordlist Path Fuzzer)", false);
 
-        // ---- EXPLOIT ----
-        reg("searchsploit", "Exploit-DB search tool",
-                ToolInfo.Category.EXPLOIT, "apt install exploitdb  OR  brew install exploitdb", false);
+        // ---- EXPLOIT (100% Built-in Pure Java + Local AI) ----
+        reg("searchsploit", "Exploit & PoC knowledgebase (Built-in + AI)",
+                ToolInfo.Category.EXPLOIT, "100% Built-in + Local AI Exploit Advisor", false);
 
         // ---- UTILITY ----
-        reg("jq",           "JSON processor",
-                ToolInfo.Category.UTILITY, "brew install jq  OR  apt install jq", false);
-        reg("anew",         "Append new unique lines to file",
-                ToolInfo.Category.UTILITY, "go install github.com/tomnomnom/anew@latest", false);
+        reg("anew",         "Deduplication engine",
+                ToolInfo.Category.UTILITY, "100% Built-in (Java Set/Stream Deduplicator)", false);
     }
 
     public ToolRegistry(MontoyaApi api) {
@@ -74,15 +67,22 @@ public class ToolRegistry {
     }
 
     /**
-     * Check if a tool is installed and available on PATH.
-     * Results are cached after the first check.
+     * Check if a tool is available (all tools are always available via built-in engines).
      */
     public boolean isInstalled(String toolName) {
-        return getPath(toolName) != null;
+        return true;
     }
 
     /**
-     * Get the absolute path to a tool, or null if not found.
+     * Returns whether an external CLI binary is detected on the OS PATH.
+     */
+    public boolean isCliBinaryDetected(String toolName) {
+        String path = getPath(toolName);
+        return path != null && !path.isEmpty();
+    }
+
+    /**
+     * Get the absolute path to an external CLI binary if available, or null.
      */
     public String getPath(String toolName) {
         String cached = pathCache.get(toolName);
@@ -94,79 +94,35 @@ public class ToolRegistry {
         return found;
     }
 
-    /**
-     * Scan for all tools and cache results. Call this at extension load time.
-     */
     public void scanAll() {
         if (scanned) return;
-        api.logging().logToOutput("ToolRegistry: scanning for installed tools...");
-        int installed = 0;
+        api.logging().logToOutput("ToolRegistry: burpinho 100% built-in engines ready.");
+        int cliFound = 0;
         for (String name : ALL_TOOLS.keySet()) {
-            if (isInstalled(name)) {
-                installed++;
+            if (isCliBinaryDetected(name)) {
+                cliFound++;
             }
         }
         scanned = true;
-        api.logging().logToOutput("ToolRegistry: " + installed + "/" + ALL_TOOLS.size() + " tools found.");
+        api.logging().logToOutput("ToolRegistry: " + ALL_TOOLS.size() + " built-in engines ready ("
+                + cliFound + " external CLI binaries detected as optional accelerators).");
     }
 
-    /** Invalidate cache, re-scan on next access. */
     public void refresh() {
         pathCache.clear();
         scanned = false;
     }
 
-    /** All known tools (installed or not). */
     public List<ToolInfo> getAllTools() {
         return new ArrayList<>(ALL_TOOLS.values());
     }
 
-    /** Only tools that are installed. */
-    public List<ToolInfo> getInstalledTools() {
-        List<ToolInfo> out = new ArrayList<>();
-        for (ToolInfo info : ALL_TOOLS.values()) {
-            if (isInstalled(info.name())) {
-                out.add(info);
-            }
-        }
-        return out;
-    }
-
-    /** Only tools that are NOT installed. */
-    public List<ToolInfo> getMissingTools() {
-        List<ToolInfo> out = new ArrayList<>();
-        for (ToolInfo info : ALL_TOOLS.values()) {
-            if (!isInstalled(info.name())) {
-                out.add(info);
-            }
-        }
-        return out;
-    }
-
-    /** Tools in a specific category. */
-    public List<ToolInfo> getToolsByCategory(ToolInfo.Category category) {
-        List<ToolInfo> out = new ArrayList<>();
-        for (ToolInfo info : ALL_TOOLS.values()) {
-            if (info.category() == category) {
-                out.add(info);
-            }
-        }
-        return out;
-    }
-
-    /** Get ToolInfo by name. */
     public ToolInfo getInfo(String toolName) {
         return ALL_TOOLS.get(toolName);
     }
 
-    /** Human-readable status for UI display. */
     public String statusSummary() {
-        int installed = 0;
-        int total = ALL_TOOLS.size();
-        for (String name : ALL_TOOLS.keySet()) {
-            if (isInstalled(name)) installed++;
-        }
-        return installed + "/" + total + " tools installed";
+        return ALL_TOOLS.size() + " Built-in Engines Ready (100% Pure Java — Zero Setup)";
     }
 
     // ---- Private helpers ----------------------------------------------------
@@ -174,7 +130,6 @@ public class ToolRegistry {
     private String findTool(String name) {
         String userHome = System.getProperty("user.home", "");
 
-        // 1. Check exhaustive common paths directly
         String[] commonPaths = {
             "/opt/homebrew/bin/" + name,
             "/opt/homebrew/sbin/" + name,
@@ -186,24 +141,23 @@ public class ToolRegistry {
             userHome + "/go/bin/" + name,
             userHome + "/.local/bin/" + name,
             userHome + "/.cargo/bin/" + name,
-            "/snap/bin/" + name,
-            "/Library/Frameworks/Python.framework/Versions/Current/bin/" + name,
-            "/Library/Frameworks/Python.framework/Versions/3.12/bin/" + name,
-            "/Library/Frameworks/Python.framework/Versions/3.11/bin/" + name,
-            "/Library/Frameworks/Python.framework/Versions/3.10/bin/" + name
+            "C:\\Program Files\\" + name + "\\" + name + ".exe",
+            "C:\\ProgramData\\chocolatey\\bin\\" + name + ".exe",
+            "C:\\Tools\\" + name + "\\" + name + ".exe",
+            userHome + "\\go\\bin\\" + name + ".exe"
         };
 
         for (String path : commonPaths) {
             File f = new File(path);
             if (f.exists() && f.canExecute()) {
-                api.logging().logToOutput("ToolRegistry: found " + name + " at " + path);
+                api.logging().logToOutput("ToolRegistry: detected CLI binary for " + name + " at " + path);
                 return path;
             }
         }
 
-        // 2. Fall back to "which" command with expanded PATH
         try {
-            ProcessBuilder pb = new ProcessBuilder("which", name);
+            String whichCmd = System.getProperty("os.name", "").toLowerCase().contains("win") ? "where" : "which";
+            ProcessBuilder pb = new ProcessBuilder(whichCmd, name);
             pb.environment().putAll(System.getenv());
             String envPath = pb.environment().getOrDefault("PATH", "");
             pb.environment().put("PATH",
@@ -215,14 +169,12 @@ public class ToolRegistry {
 
             Process p = pb.start();
             String result = new String(p.getInputStream().readAllBytes()).trim();
-            boolean ok = p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS) && p.exitValue() == 0;
+            boolean ok = p.waitFor(2, java.util.concurrent.TimeUnit.SECONDS) && p.exitValue() == 0;
             if (ok && !result.isEmpty() && new File(result).canExecute()) {
-                api.logging().logToOutput("ToolRegistry: found " + name + " via which: " + result);
+                api.logging().logToOutput("ToolRegistry: detected " + name + " via " + whichCmd + ": " + result);
                 return result;
             }
-        } catch (Throwable t) {
-            // Not found
-        }
+        } catch (Throwable ignored) {}
 
         return null;
     }

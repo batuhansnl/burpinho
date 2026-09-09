@@ -87,13 +87,8 @@ public class ToolsTab extends JPanel {
             public Component getTableCellRendererComponent(JTable t, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, column);
-                if ("INSTALLED".equals(value)) {
-                    c.setForeground(new Color(63, 185, 80));
-                    setFont(getFont().deriveFont(Font.BOLD));
-                } else {
-                    c.setForeground(new Color(248, 81, 73));
-                    setFont(getFont().deriveFont(Font.PLAIN));
-                }
+                c.setForeground(new Color(63, 185, 80));
+                setFont(getFont().deriveFont(Font.BOLD));
                 return c;
             }
         });
@@ -123,20 +118,24 @@ public class ToolsTab extends JPanel {
 
         for (ToolInfo info : allTools) {
             String path = registry.getPath(info.name());
-            boolean installed = path != null && !path.isEmpty();
-            String status = installed ? "INSTALLED" : "MISSING";
-            String name = info.name() + (info.required() ? " *" : "");
+            boolean cliDetected = path != null && !path.isEmpty();
+            String status = "BUILT-IN (READY)";
+            String name = info.name();
+
+            String engineDetail = cliDetected
+                    ? "Built-in Engine + CLI Accelerator (" + path + ")"
+                    : "100% Pure Java Engine (Zero Setup / Enterprise Ready)";
 
             tableModel.addRow(new Object[]{
                     name,
                     info.category().name(),
                     status,
-                    installed ? path : info.installCmd(),
+                    engineDetail,
                     info.description()
             });
         }
 
-        summaryLabel.setText(registry.statusSummary());
+        summaryLabel.setText("⚡ " + registry.statusSummary());
     }
 
     private void onRefresh() {
