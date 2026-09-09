@@ -16,6 +16,7 @@ import com.sn1persecurity.silentchain.bapp.ui.modules.JwtPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.VulnScannerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.WordlistPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.XssPanel;
 
 import javax.swing.JMenu;
@@ -42,6 +43,7 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
     private FuzzerPanel fuzzerPanel;
     private ExploitPanel exploitPanel;
     private JwtPanel jwtPanel;
+    private WordlistPanel wordlistPanel;
 
     public ContextMenuProvider(MontoyaApi api, AiService aiService,
                                AnalysisOrchestrator orchestrator, ScanState scanState) {
@@ -59,7 +61,8 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
                                 SqliPanel sqli,
                                 FuzzerPanel fuzzer,
                                 ExploitPanel exploit,
-                                JwtPanel jwt) {
+                                JwtPanel jwt,
+                                WordlistPanel wordlist) {
         this.reconPanel = recon;
         this.ipScanPanel = ipScan;
         this.vulnScannerPanel = vulnScanner;
@@ -68,6 +71,7 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         this.fuzzerPanel = fuzzer;
         this.exploitPanel = exploit;
         this.jwtPanel = jwt;
+        this.wordlistPanel = wordlist;
     }
 
     @Override
@@ -129,6 +133,11 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         JMenuItem jwtItem = new JMenuItem("🔐 JWT Saldırganına Gönder (Otomatik Tespit)");
         jwtItem.addActionListener(e -> dispatchJwt(selected));
         menu.add(jwtItem);
+
+        // 10. Wordlist Generator
+        JMenuItem wordlistItem = new JMenuItem("📝 Host/Parametreleri Wordlist Oluşturucuya Gönder");
+        wordlistItem.addActionListener(e -> dispatchWordlist(selected));
+        menu.add(wordlistItem);
 
         return List.of(menu);
     }
@@ -236,6 +245,37 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         String url = extractFirstUrl(messages);
         if (url != null) {
             scanState.info("burpinho [context-menu]: No JWT detected in request. Open JWT tab and paste token manually.");
+        }
+    }
+
+    private void dispatchWordlist(List<HttpRequestResponse> messages) {
+        if (wordlistPanel == null) return;
+        List<String> keywords = new ArrayList<>();
+        for (HttpRequestResponse rr : messages) {
+            if (rr.request() != null) {
+                String host = extractHostFromUrl(rr.request().url());
+                if (host != null) {
+                    for (String part : host.split("\\.")) {
+                        if (!part.isEmpty() && !keywords.contains(part) && part.length() > 2) {
+                            keywords.add(part);
+                        }
+                    }
+                }
+                String path = rr.request().path();
+                if (path != null) {
+                    for (String part : path.split("[/?&=#._\\-]+")) {
+                        if (!part.isEmpty() && !keywords.contains(part) && part.length() > 2) {
+                            keywords.add(part);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!keywords.isEmpty()) {
+            String combined = String.join("\n", keywords);
+            SwingUtilities.invokeLater(() -> wordlistPanel.setKeywords(combined));
+            scanState.info("burpinho [context-menu]: " + keywords.size() + " anahtar kelime Wordlist Oluşturucuya aktarıldı.");
         }
     }
 

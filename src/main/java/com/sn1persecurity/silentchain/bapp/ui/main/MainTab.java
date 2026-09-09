@@ -18,6 +18,7 @@ import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.VulnScannerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.WordlistPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.XssPanel;
 
 import javax.swing.BoxLayout;
@@ -29,7 +30,7 @@ import javax.swing.Timer;
 import java.awt.BorderLayout;
 
 /**
- * Root burpinho tab — tabbed layout with 10 dedicated modules:
+ * Root burpinho tab — tabbed layout with 11 dedicated modules:
  *   Tab 1: Passive AI
  *   Tab 2: Recon (Subdomain & IP)
  *   Tab 3: IP & Network Scanner
@@ -40,6 +41,7 @@ import java.awt.BorderLayout;
  *   Tab 8: Exploit & PoC Advisor
  *   Tab 9: Report Generator
  *   Tab 10: JWT Attack
+ *   Tab 11: Wordlist Generator
  */
 public class MainTab extends JPanel implements ControlBar.Actions {
 
@@ -68,6 +70,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     private ExploitPanel exploitPanel;
     private ReportPanel reportPanel;
     private JwtPanel jwtPanel;
+    private WordlistPanel wordlistPanel;
     private final JTabbedPane moduleTabs;
 
     public MainTab(MontoyaApi api,
@@ -134,7 +137,8 @@ public class MainTab extends JPanel implements ControlBar.Actions {
                                 FuzzerPanel fuzzer,
                                 ExploitPanel exploit,
                                 ReportPanel report,
-                                JwtPanel jwt) {
+                                JwtPanel jwt,
+                                WordlistPanel wordlist) {
         this.reconPanel = recon;
         this.ipScanPanel = ipScan;
         this.vulnScannerPanel = vulnScanner;
@@ -144,6 +148,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         this.exploitPanel = exploit;
         this.reportPanel = report;
         this.jwtPanel = jwt;
+        this.wordlistPanel = wordlist;
 
         moduleTabs.addTab("Keşif (Subdomain & IP)", recon);
         moduleTabs.addTab("IP & Ağ Tarayıcısı", ipScan);
@@ -154,6 +159,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         moduleTabs.addTab("Exploit & PoC", exploit);
         moduleTabs.addTab("Rapor Oluşturucu", report);
         moduleTabs.addTab("JWT Saldırısı", jwt);
+        moduleTabs.addTab("Wordlist Oluşturucu", wordlist);
     }
 
     public ReconPanel getReconPanel()               { return reconPanel; }
@@ -165,6 +171,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     public ExploitPanel getExploitPanel()           { return exploitPanel; }
     public ReportPanel getReportPanel()             { return reportPanel; }
     public JwtPanel getJwtPanel()                   { return jwtPanel; }
+    public WordlistPanel getWordlistPanel()         { return wordlistPanel; }
 
     public void switchToTab(int index) {
         if (index >= 0 && index < moduleTabs.getTabCount()) {

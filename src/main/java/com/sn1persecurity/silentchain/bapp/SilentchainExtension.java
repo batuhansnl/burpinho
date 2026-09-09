@@ -33,6 +33,8 @@ import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.VulnScannerPanel;
+import com.sn1persecurity.silentchain.bapp.modules.wordlist.WordlistEngine;
+import com.sn1persecurity.silentchain.bapp.ui.modules.WordlistPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.XssPanel;
 import com.sn1persecurity.silentchain.bapp.ui.settings.SettingsDialog;
 import com.sn1persecurity.silentchain.bapp.util.Banner;
@@ -104,7 +106,7 @@ public class SilentchainExtension implements BurpExtension {
             MainTab mainTab = new MainTab(api, settings, persistence, scanState,
                     counters, taskRegistry, findingsRegistry);
 
-            // Instantiate all dedicated 8 module panels
+            // Instantiate all dedicated 10 module panels
             ReconPanel reconPanel = new ReconPanel(api, reconModule, threadPool, scanState);
             IpScanPanel ipScanPanel = new IpScanPanel(api, ipScannerModule, threadPool, scanState);
             VulnScannerPanel vulnScannerPanel = new VulnScannerPanel(api, scannerModule, threadPool, scanState);
@@ -113,6 +115,10 @@ public class SilentchainExtension implements BurpExtension {
             FuzzerPanel fuzzerPanel = new FuzzerPanel(api, threadPool, scanState);
             ExploitPanel exploitPanel = new ExploitPanel(api, exploitModule, threadPool, scanState);
             JwtPanel jwtPanel = new JwtPanel(api, threadPool, scanState);
+            WordlistEngine wordlistEngine = new WordlistEngine();
+            WordlistPanel wordlistPanel = new WordlistPanel(api, wordlistEngine, threadPool, scanState);
+            wordlistPanel.setModulePanels(fuzzerPanel, jwtPanel);
+
             ReportPanel reportPanel = new ReportPanel(api, reportModule, threadPool, scanState,
                     reconPanel::getLastResult, vulnScannerPanel::getLastResult, ipScanPanel::getLastResult);
 
@@ -125,7 +131,8 @@ public class SilentchainExtension implements BurpExtension {
                     fuzzerPanel,
                     exploitPanel,
                     reportPanel,
-                    jwtPanel
+                    jwtPanel,
+                    wordlistPanel
             );
 
             contextMenu.setModulePanels(
@@ -136,7 +143,8 @@ public class SilentchainExtension implements BurpExtension {
                     sqliPanel,
                     fuzzerPanel,
                     exploitPanel,
-                    jwtPanel
+                    jwtPanel,
+                    wordlistPanel
             );
 
             SettingsDialog settingsDialog = new SettingsDialog(parent, api, settings, persistence,
