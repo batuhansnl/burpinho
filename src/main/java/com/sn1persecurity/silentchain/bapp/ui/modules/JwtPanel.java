@@ -1,6 +1,7 @@
 package com.sn1persecurity.silentchain.bapp.ui.modules;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.http.message.requests.HttpRequest;
 
 import com.sn1persecurity.silentchain.bapp.modules.jwt.JwtAttackEngine;
 import com.sn1persecurity.silentchain.bapp.modules.jwt.JwtBruteForcer;
@@ -17,6 +18,8 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -24,15 +27,32 @@ import java.util.Map;
  * Advanced JWT Attack Panel — 4-section split-pane layout:
  *   Section 1: Token Input & Real-Time Decode
  *   Section 2: Attack Configuration & Brute-Force Settings
- *   Section 3: Attack Results Table
+ *   Section 3: Attack Results Table (with Send to Repeater)
  *   Section 4: Live Attack Audit Log
  */
 public class JwtPanel extends JPanel {
+
+    /**
+     * Internal container storing full untruncated attack results.
+     */
+    public record AttackResultItem(
+            int id,
+            String severity,
+            String attackName,
+            String fullModifiedToken,
+            String status,
+            String details
+    ) {}
 
     private final MontoyaApi api;
     private final ThreadPool threadPool;
     private final ScanState scanState;
     private volatile boolean cancelled = false;
+
+    // HTTP context from Burp
+    private HttpRequest originalHttpRequest = null;
+    private String originalRawToken = null;
+    private final List<AttackResultItem> attackResultsList = Collections.synchronizedList(new ArrayList<>());
 
     // Token input
     private final JTextArea tokenInputArea = new JTextArea(3, 50);
@@ -314,24 +334,40 @@ public class JwtPanel extends JPanel {
 
         // Context menu on results table
         JPopupMenu popup = new JPopupMenu();
-        JMenuItem copyToken = new JMenuItem("📋 Copy Modified Token");
-        copyToken.addActionListener(e -> copyCell(3));
-        JMenuItem copyDetails = new JMenuItem("📋 Copy Details");
+
+        JMenuItem sendToRepeater = new JMenuItem("🔁 Send to Burp Repeater");
+        sendToRepeater.setFont(sendToRepeater.getFont().deriveFont(Font.BOLD));
+        sendToRepeater.addActionListener(e -> onSendToRepeater());
+
+        JMenuItem inspectItem = new JMenuItem("🔍 Inspect / Decode in Panels");
+        inspectItem.addActionListener(e -> onInspectSelectedResult());
+
+        JMenuItem copyToken = new JMenuItem("📋 Copy Full Modified Token");
+        copyToken.addActionListener(e -> onCopyFullToken());
+
+        JMenuItem copyDetails = new JMenuItem("📋 Copy Attack Details");
         copyDetails.addActionListener(e -> copyCell(5));
-        JMenuItem sendToRepeater = new JMenuItem("🔁 Send Token to Clipboard (for Repeater)");
-        sendToRepeater.addActionListener(e -> {
-            int row = resultsTable.getSelectedRow();
-            if (row >= 0) {
-                String token = String.valueOf(resultsTable.getValueAt(row, 3));
-                copyToClipboard(token);
-                statusLabel.setText("✅ Token copied — paste it in Burp Repeater Authorization header.");
-            }
-        });
+
+        JMenuItem copyCurl = new JMenuItem("💻 Copy as cURL Command");
+        copyCurl.addActionListener(e -> onCopyCurl());
+
+        popup.add(sendToRepeater);
+        popup.add(inspectItem);
+        popup.addSeparator();
         popup.add(copyToken);
         popup.add(copyDetails);
-        popup.addSeparator();
-        popup.add(sendToRepeater);
+        popup.add(copyCurl);
         resultsTable.setComponentPopupMenu(popup);
+
+        // Double click row -> inspect token in decoder
+        resultsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    onInspectSelectedResult();
+                }
+            }
+        });
 
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBorder(BorderFactory.createTitledBorder(
@@ -443,6 +479,7 @@ public class JwtPanel extends JPanel {
         progressBar.setVisible(true);
         statusLabel.setText("⚔️ Launching JWT attacks...");
         resultsModel.setRowCount(0);
+        attackResultsList.clear();
 
         scanState.info("burpinho [JWT]: Starting JWT attack suite on " + currentToken.algorithm() + " token");
 
@@ -490,7 +527,12 @@ public class JwtPanel extends JPanel {
             if (cancelled) break;
             if ("CRITICAL".equals(r.severity()) || "HIGH".equals(r.severity())) criticalCount++;
 
-            final int id = resultsModel.getRowCount() + 1;
+            final int id = attackResultsList.size() + 1;
+            AttackResultItem item = new AttackResultItem(
+                    id, r.severity(), r.attackName(), r.modifiedToken(), r.status(), r.details()
+            );
+            attackResultsList.add(item);
+
             final String truncatedToken = r.modifiedToken().length() > 60
                     ? r.modifiedToken().substring(0, 60) + "..."
                     : r.modifiedToken();
@@ -547,8 +589,17 @@ public class JwtPanel extends JPanel {
                 String crackedSecret = bfResult.secret();
                 String resignedToken = currentToken.buildSignedHmac(crackedSecret, currentToken.algorithm());
 
+                final int id = attackResultsList.size() + 1;
+                AttackResultItem item = new AttackResultItem(
+                        id, "CRITICAL",
+                        "HMAC BF (secret=\"" + crackedSecret + "\")",
+                        resignedToken,
+                        "🔥 CRACKED",
+                        "Secret cracked: \"" + crackedSecret + "\" — " + bfResult.summary()
+                );
+                attackResultsList.add(item);
+
                 SwingUtilities.invokeLater(() -> {
-                    int id = resultsModel.getRowCount() + 1;
                     resultsModel.addRow(new Object[]{
                             id, "CRITICAL",
                             "HMAC BF (secret=\"" + crackedSecret + "\")",
@@ -558,8 +609,17 @@ public class JwtPanel extends JPanel {
                     });
                 });
             } else {
+                final int id = attackResultsList.size() + 1;
+                AttackResultItem item = new AttackResultItem(
+                        id, "INFO",
+                        "HMAC Brute-Force",
+                        "N/A",
+                        "❌ NOT FOUND",
+                        bfResult.summary()
+                );
+                attackResultsList.add(item);
+
                 SwingUtilities.invokeLater(() -> {
-                    int id = resultsModel.getRowCount() + 1;
                     resultsModel.addRow(new Object[]{
                             id, "INFO",
                             "HMAC Brute-Force",
@@ -577,7 +637,7 @@ public class JwtPanel extends JPanel {
         final int ac = attackCount;
         final int bfk = bfKeysCount;
         SwingUtilities.invokeLater(() -> {
-            statusLabel.setText("✅ JWT attack suite completed — " + fc + " critical/high findings.");
+            statusLabel.setText("✅ JWT attack suite completed — " + fc + " critical/high findings. Right-click any row to Send to Repeater.");
             summaryLabel.setText("Attacks: " + ac + " | Critical/High: " + fc + " | BF Keys Tested: " + bfk);
             scanState.info("burpinho [JWT]: Attack suite complete — " + ac + " results, " + fc + " critical/high.");
         });
@@ -594,6 +654,9 @@ public class JwtPanel extends JPanel {
 
     private void onClear() {
         resultsModel.setRowCount(0);
+        attackResultsList.clear();
+        originalHttpRequest = null;
+        originalRawToken = null;
         logArea.setText("");
         headerArea.setText("");
         payloadArea.setText("");
@@ -641,13 +704,226 @@ public class JwtPanel extends JPanel {
     }
 
     // =====================================================================
+    //  REPEATER & RESULT ACTIONS
+    // =====================================================================
+
+    /**
+     * Send selected attack payload as a full HTTP request directly to Burp Repeater.
+     */
+    private void onSendToRepeater() {
+        int selectedRow = resultsTable.getSelectedRow();
+        if (selectedRow < 0) {
+            statusLabel.setText("⚠️ Please select an attack result row first.");
+            return;
+        }
+
+        int modelRow = resultsTable.convertRowIndexToModel(selectedRow);
+        AttackResultItem item = null;
+        synchronized (attackResultsList) {
+            if (modelRow >= 0 && modelRow < attackResultsList.size()) {
+                item = attackResultsList.get(modelRow);
+            }
+        }
+
+        if (item == null || item.fullModifiedToken() == null || item.fullModifiedToken().isEmpty() || "N/A".equals(item.fullModifiedToken())) {
+            statusLabel.setText("⚠️ Selected row has no attack token payload.");
+            return;
+        }
+
+        String token = item.fullModifiedToken();
+        String attackName = item.attackName();
+        String tabTitle = "JWT: " + (attackName.length() > 22 ? attackName.substring(0, 22) + "..." : attackName);
+
+        HttpRequest requestToSend = null;
+
+        try {
+            if (originalHttpRequest != null) {
+                // If we have the original Burp request, replace the old JWT with modified attack JWT
+                String rawReq = originalHttpRequest.toString();
+                if (originalRawToken != null && !originalRawToken.isEmpty() && rawReq.contains(originalRawToken)) {
+                    String modifiedRaw = rawReq.replace(originalRawToken, token);
+                    if (originalHttpRequest.httpService() != null) {
+                        requestToSend = HttpRequest.httpRequest(originalHttpRequest.httpService(), modifiedRaw);
+                    } else {
+                        requestToSend = HttpRequest.httpRequest(modifiedRaw);
+                    }
+                } else if (originalHttpRequest.hasHeader("Authorization")) {
+                    requestToSend = originalHttpRequest.withUpdatedHeader("Authorization", "Bearer " + token);
+                } else {
+                    requestToSend = originalHttpRequest.withAddedHeader("Authorization", "Bearer " + token);
+                }
+            } else {
+                // Check if user pasted a raw HTTP request in token input area
+                String input = tokenInputArea.getText().trim();
+                if (input.startsWith("GET ") || input.startsWith("POST ") || input.startsWith("PUT ") ||
+                    input.startsWith("DELETE ") || input.startsWith("PATCH ") || input.startsWith("HEAD ") ||
+                    input.startsWith("OPTIONS ")) {
+
+                    String tokenToReplace = JwtToken.extractFromRequest(input);
+                    String modifiedReq = (tokenToReplace != null && !tokenToReplace.isEmpty() && input.contains(tokenToReplace))
+                            ? input.replace(tokenToReplace, token)
+                            : input;
+                    requestToSend = HttpRequest.httpRequest(modifiedReq);
+                } else {
+                    // Build a standard template HTTP request with target host
+                    String host = "target.local";
+                    if (currentToken != null && currentToken.issuer() != null && !currentToken.issuer().isEmpty()) {
+                        try {
+                            String iss = currentToken.issuer();
+                            if (iss.startsWith("http://") || iss.startsWith("https://")) {
+                                host = new java.net.URI(iss).getHost();
+                            } else {
+                                host = iss.replaceAll("[^a-zA-Z0-9.-]", "");
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                    if (host == null || host.isEmpty()) host = "target.local";
+
+                    String template = "GET /api/v1/user HTTP/1.1\r\n" +
+                            "Host: " + host + "\r\n" +
+                            "Authorization: Bearer " + token + "\r\n" +
+                            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/4.0.0\r\n" +
+                            "Accept: application/json, text/plain, */*\r\n" +
+                            "Connection: close\r\n\r\n";
+                    requestToSend = HttpRequest.httpRequest(template);
+                }
+            }
+
+            if (api != null && api.repeater() != null && requestToSend != null) {
+                api.repeater().sendToRepeater(requestToSend, tabTitle);
+                statusLabel.setText("🔁 Sent [" + attackName + "] to Burp Repeater tab: '" + tabTitle + "'");
+                log("[JWT-REPEATER] 🔁 Successfully sent attack request to Burp Repeater tab: " + tabTitle +
+                        " | Payload: " + (token.length() > 60 ? token.substring(0, 60) + "..." : token));
+                scanState.info("burpinho [JWT]: Sent attack payload '" + attackName + "' to Burp Repeater.");
+            } else {
+                copyToClipboard(token);
+                statusLabel.setText("⚠️ Repeater API unavailable — copied token to clipboard instead.");
+            }
+        } catch (Exception ex) {
+            log("[JWT-REPEATER] ❌ Failed to send to Repeater: " + ex.getMessage());
+            statusLabel.setText("❌ Error sending to Repeater: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Inspect selected attack result directly in the Header, Payload, and Signature decoder panels.
+     */
+    private void onInspectSelectedResult() {
+        int selectedRow = resultsTable.getSelectedRow();
+        if (selectedRow < 0) return;
+
+        int modelRow = resultsTable.convertRowIndexToModel(selectedRow);
+        AttackResultItem item = null;
+        synchronized (attackResultsList) {
+            if (modelRow >= 0 && modelRow < attackResultsList.size()) {
+                item = attackResultsList.get(modelRow);
+            }
+        }
+
+        if (item == null || item.fullModifiedToken() == null || "N/A".equals(item.fullModifiedToken())) {
+            return;
+        }
+
+        String token = item.fullModifiedToken();
+        try {
+            JwtToken parsed = JwtToken.parse(token);
+            headerArea.setText(parsed.headerJson());
+            payloadArea.setText(parsed.payloadJson());
+
+            StringBuilder sigInfo = new StringBuilder();
+            sigInfo.append("=== INSPECTING ATTACK PAYLOAD ===\n");
+            sigInfo.append("Attack: ").append(item.attackName()).append("\n");
+            sigInfo.append("Severity: ").append(item.severity()).append("\n");
+            sigInfo.append("Status: ").append(item.status()).append("\n");
+            sigInfo.append("Algorithm: ").append(parsed.algorithm()).append("\n");
+            sigInfo.append("Signature Length: ").append(parsed.signatureBytes().length).append(" bytes\n");
+            sigInfo.append("Details: ").append(item.details()).append("\n");
+            signatureInfoArea.setText(sigInfo.toString());
+
+            statusLabel.setText("🔍 Inspecting payload for: " + item.attackName() + " (" + item.severity() + ")");
+            log("[JWT-INSPECT] 🔍 Inspecting attack token for '" + item.attackName() + "' (alg: " + parsed.algorithm() + ")");
+        } catch (Exception ex) {
+            headerArea.setText("Token: " + token);
+            payloadArea.setText("Details: " + item.details());
+            signatureInfoArea.setText("Status: " + item.status());
+            statusLabel.setText("🔍 Showing payload for: " + item.attackName());
+        }
+    }
+
+    /**
+     * Copy full untruncated modified token to clipboard.
+     */
+    private void onCopyFullToken() {
+        int selectedRow = resultsTable.getSelectedRow();
+        if (selectedRow < 0) return;
+
+        int modelRow = resultsTable.convertRowIndexToModel(selectedRow);
+        AttackResultItem item = null;
+        synchronized (attackResultsList) {
+            if (modelRow >= 0 && modelRow < attackResultsList.size()) {
+                item = attackResultsList.get(modelRow);
+            }
+        }
+
+        if (item != null && item.fullModifiedToken() != null) {
+            copyToClipboard(item.fullModifiedToken());
+            statusLabel.setText("📋 Copied full modified token for [" + item.attackName() + "] to clipboard!");
+        }
+    }
+
+    /**
+     * Copy as a ready-to-run cURL command.
+     */
+    private void onCopyCurl() {
+        int selectedRow = resultsTable.getSelectedRow();
+        if (selectedRow < 0) return;
+
+        int modelRow = resultsTable.convertRowIndexToModel(selectedRow);
+        AttackResultItem item = null;
+        synchronized (attackResultsList) {
+            if (modelRow >= 0 && modelRow < attackResultsList.size()) {
+                item = attackResultsList.get(modelRow);
+            }
+        }
+
+        if (item == null || item.fullModifiedToken() == null || "N/A".equals(item.fullModifiedToken())) {
+            return;
+        }
+
+        String token = item.fullModifiedToken();
+        String url = "https://target.local/api/user";
+        if (originalHttpRequest != null && originalHttpRequest.url() != null) {
+            url = originalHttpRequest.url();
+        }
+        String curl = "curl -k -i -X GET '" + url + "' \\\n  -H 'Authorization: Bearer " + token + "'";
+        copyToClipboard(curl);
+        statusLabel.setText("💻 Copied cURL command for [" + item.attackName() + "] to clipboard!");
+    }
+
+    // =====================================================================
     //  PUBLIC API (for context menu integration)
     // =====================================================================
 
     /**
-     * Set token from external source (e.g., context menu / Repeater).
+     * Set both the original Burp HttpRequest and the extracted JWT token.
+     */
+    public void setRequestAndToken(HttpRequest request, String jwt) {
+        this.originalHttpRequest = request;
+        this.originalRawToken = jwt;
+        tokenInputArea.setText(jwt);
+        onDecode();
+        String urlStr = (request != null && request.url() != null) ? request.url() : "HTTP Request";
+        statusLabel.setText("✅ Loaded JWT from Burp request: " + urlStr);
+        log("[JWT-IMPORT] 📥 Received request for URL: " + urlStr + " with token alg=" +
+                (currentToken != null ? currentToken.algorithm() : "unknown"));
+    }
+
+    /**
+     * Set token from external source (e.g., context menu / text).
      */
     public void setToken(String rawTokenOrRequest) {
+        this.originalHttpRequest = null;
+        this.originalRawToken = rawTokenOrRequest;
         tokenInputArea.setText(rawTokenOrRequest);
         onDecode();
     }
@@ -656,8 +932,13 @@ public class JwtPanel extends JPanel {
      * Set the full HTTP request and auto-extract JWT.
      */
     public void setHttpRequest(String httpRequest) {
+        try {
+            this.originalHttpRequest = HttpRequest.httpRequest(httpRequest);
+        } catch (Exception ignored) {}
+
         String jwt = JwtToken.extractFromRequest(httpRequest);
         if (jwt != null) {
+            this.originalRawToken = jwt;
             tokenInputArea.setText(jwt);
             onDecode();
         } else {

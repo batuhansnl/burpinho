@@ -2,6 +2,7 @@ package com.sn1persecurity.silentchain.bapp.ui;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 
@@ -223,8 +224,10 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
                 String rawRequest = rr.request().toString();
                 String jwt = com.sn1persecurity.silentchain.bapp.modules.jwt.JwtToken.extractFromRequest(rawRequest);
                 if (jwt != null) {
-                    SwingUtilities.invokeLater(() -> jwtPanel.setToken(jwt));
-                    scanState.info("burpinho [context-menu]: JWT token auto-detected and sent to JWT Attack tab.");
+                    final HttpRequest req = rr.request();
+                    final String token = jwt;
+                    SwingUtilities.invokeLater(() -> jwtPanel.setRequestAndToken(req, token));
+                    scanState.info("burpinho [context-menu]: JWT token auto-detected from request and sent to JWT Attack tab.");
                     return;
                 }
             }
