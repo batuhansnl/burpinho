@@ -782,7 +782,7 @@ public class JwtPanel extends JPanel {
                     String template = "GET /api/v1/user HTTP/1.1\r\n" +
                             "Host: " + host + "\r\n" +
                             "Authorization: Bearer " + token + "\r\n" +
-                            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/4.0.0\r\n" +
+                            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/4.0.1\r\n" +
                             "Accept: application/json, text/plain, */*\r\n" +
                             "Connection: close\r\n\r\n";
                     requestToSend = HttpRequest.httpRequest(template);

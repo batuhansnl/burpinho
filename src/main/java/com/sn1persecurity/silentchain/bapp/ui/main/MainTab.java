@@ -267,9 +267,9 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     @Override
     public void onToolStatus() {
         JOptionPane.showMessageDialog(this,
-                "burpinho v4.0.0 — %100 Bağımsız Saf Java Mimarisi.\n\n" +
+                "burpinho v4.0.1 — %100 Bağımsız Saf Java Mimarisi.\n\n" +
                 "Tüm temel motorlar (Keşif, IP/CIDR Tarayıcı, Güvenlik Açığı Tarayıcısı, XSS,\n" +
-                "SQLi, Path Fuzzer, JWT Saldırısı ve Raporlar) dahili olarak yerleşiktir.\n" +
+                "SQLi, Path Fuzzer, JWT Saldırısı, Wordlist Oluşturucu ve Raporlar) dahili olarak yerleşiktir.\n" +
                 "Kullanım için harici Go, Python veya CLI kurulumu gerektirmez.",
                 "Araç Durumu", JOptionPane.INFORMATION_MESSAGE);
     }

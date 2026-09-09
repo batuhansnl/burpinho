@@ -1,19 +1,19 @@
-# 🧙‍♂️ burpinho v4.0.0 — 100% Self-Contained Local AI & Security Suite
+# 🧙‍♂️ burpinho v4.0.1 — 100% Self-Contained Local AI & Security Suite
 
 <div align="center">
 
-![burpinho Logo](https://img.shields.io/badge/burpinho-v4.0.0-blue?style=for-the-badge)
+![burpinho Logo](https://img.shields.io/badge/burpinho-v4.0.1-blue?style=for-the-badge)
 [![Burp Suite](https://img.shields.io/badge/Burp_Suite-Extension-orange?style=for-the-badge&logo=burpsuite)](https://portswigger.net/burp)
 [![Java](https://img.shields.io/badge/Java-17%2F21-yellow?style=for-the-badge&logo=openjdk)](https://www.java.com/)
 [![OS Support](https://img.shields.io/badge/OS-Windows%20%7C%20macOS%20%7C%20Linux-green?style=for-the-badge)](https://github.com/batuhansnl/burpinho)
-[![Version](https://img.shields.io/badge/version-4.0.0-brightgreen?style=for-the-badge)](https://github.com/batuhansnl/burpinho)
+[![Version](https://img.shields.io/badge/version-4.0.1-brightgreen?style=for-the-badge)](https://github.com/batuhansnl/burpinho)
 
 ### 🔗 🧠 ⚡ 🛡️
 
-**10 Ayrı Özel Modül Menüsü • %100 Dahili Saf Java Güvenlik Motorları • JWT Attack (12 Saldırı Tekniği + Brute-Force) • IP / CIDR Network Scanner • Subdomain IP & Port Keşfi • Canlı Loglar • Yerel AI**  
+**11 Ayrı Özel Modül Menüsü • %100 Dahili Saf Java Güvenlik Motorları • 5 Aşamalı Wordlist Generator • JWT Attack (12 Saldırı Tekniği + Brute-Force) • IP / CIDR Network Scanner • Subdomain IP & Port Keşfi • Canlı Loglar • Yerel AI**  
 *(Sıfır Dış Kurulum: Go, Python veya Harici Tool Gerektirmez — Şirket & Windows Bilgisayarları İçin %100 Uyumlu)*
 
-[⬇️ **Download burpinho v4.0.0 JAR**](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-4.0.0.jar) • [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--quick-start) • [🧰 Modüller](#-10-özel-bağımsız-modül-menüsü) • [⚙️ Ayarlar](#-yerel-llm-ayarları)
+[⬇️ **Download burpinho v4.0.1 JAR**](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-4.0.1.jar) • [🚀 Hızlı Başlangıç](#-hızlı-başlangıç--quick-start) • [🧰 Modüller](#-11-özel-bağımsız-modül-menüsü) • [⚙️ Ayarlar](#-yerel-llm-ayarları)
 
 </div>
 
@@ -21,15 +21,15 @@
 
 ## 📥 İndirme / Download JAR
 
-En güncel tek parça **v4.0.0** eklenti dosyasını indirmek için:
+En güncel tek parça **v4.0.1** eklenti dosyasını indirmek için:
 
-* 📦 **[burpinho-4.0.0.jar İndir (GitHub Direct)](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-4.0.0.jar)**
-* 📦 **[burpinho-4.0.0.jar Dosyasına Git (GitHub View)](https://github.com/batuhansnl/burpinho/blob/main/releases/burpinho-4.0.0.jar)**
-* 💻 *Lokal dosya yolu:* `releases/burpinho-4.0.0.jar` ve `/Users/batuhansenel/Downloads/burpinho-4.0.0.jar`
+* 📦 **[burpinho-4.0.1.jar İndir (GitHub Direct)](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-4.0.1.jar)**
+* 📦 **[burpinho-4.0.1.jar Dosyasına Git (GitHub View)](https://github.com/batuhansnl/burpinho/blob/main/releases/burpinho-4.0.1.jar)**
+* 💻 *Lokal dosya yolu:* `releases/burpinho-4.0.1.jar` ve `releases/burpinho.jar`
 
 ---
 
-## 🌟 Neden burpinho v4.0.0?
+## 🌟 Neden burpinho v4.0.1?
 
 Kısıtlı şirket ve banka bilgisayarlarında admin yetkisi olmaması, dışarıdan `go install`, `pip install`, `brew install` yapılamaması veya güvenlik politikaları sebebiyle harici binary (.exe) çalıştırılamaması problemlerini **%100 dahili Saf Java motorları** ile çözdük.
 
@@ -114,36 +114,43 @@ Tüm araçlar birbirinden bağımsız **10 ayrı menü/tab** olarak ayrılmış 
 ### 9️⃣ Report Generator
 * Tüm modüllerin bulgularını (Pasif AI, Recon, IP Scan, Zafiyetler, XSS, SQLi, Fuzzing) birleştiren modern **Dark Theme HTML** raporu oluşturur ve tarayıcıda otomatik açar.
 
-### 🔟 JWT Attack (v4.0.0 YENİ! 🔥)
+### 🔟 JWT Attack (🔥)
 * **12 Saldırı Tekniği:** `alg:none` bypass (6 varyant), HMAC brute-force, RS256→HS256 algorithm confusion, `kid` header injection (path traversal, SQLi, command injection, SSRF — 16 payload), `jku`/`x5u` header spoofing, `jwk` self-signed key injection, claim tampering (16 privilege escalation payload), expiry manipulation, null signature, cross-service relay, nested JWT analizi.
 * **HMAC Brute-Force Engine:** Multi-threaded (1-100 thread), dahili 500+ JWT secret wordlist, custom wordlist dosyası desteği, canlı hız göstergesi (keys/sec).
 * **Otomatik JWT Algılama:** HTTP isteklerinde `Authorization: Bearer eyJ...` header'ını otomatik tespit eder.
 * **Token Decode:** Header (JOSE), Payload (Claims) ve Signature'ı ayrı renkli panellerde görüntüler.
-* **Repeater Entegrasyonu:** Saldırı sonuçlarını tek tıkla clipboard'a kopyalayıp Burp Repeater'da kullanabilme.
+* **Repeater Entegrasyonu:** Saldırı sonuçlarını sağ tıklayarak anında Burp Repeater sekmesine yeni istek olarak gönderebilme.
 * **CSV Export & Canlı Audit Log.**
+
+### 1️⃣1️⃣ Wordlist Generator (v4.0.1 YENİ! 🔥)
+* **5 Aşamalı Üretim Seçenekleri:** 100 Kelime (Hızlı), 1.000 Kelime (1K), 10.000 Kelime (10K - Varsayılan), 100.000 Kelime (100K - Kapsamlı), Özel (10 - 1.000.000 arası serbest limit).
+* **Gelişmiş Mutasyonlar:** Büyük/küçük harf varyasyonları, Leetspeak (`a->@/4, e->3, i->1, o->0, s->$`), Yıllar & Numaralar (`2020..2028, 123, 01..99`), Ayırıcılar (`_, -, ., @, #, $, !`), Web & Dosya Uzantıları (`.php, .json, .bak, .sql, .env`).
+* **Opsiyonel Karakter Hane Sayısı:** Minimum ve maksimum hane sınırlandırması.
+* **Dahili Köprüler & Export:** Panoya Kopyalama, `.txt` dosyasına kaydetme, doğrudan Path Fuzzer ve JWT modüllerine aktarma.
 
 ---
 
 ## 🚀 Hızlı Başlangıç / Quick Start
 
 ### 1. Eklentiyi Burp Suite'e Ekleyin
-1. **[burpinho-4.0.0.jar](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-4.0.0.jar)** dosyasını indirin.
+1. **[burpinho-4.0.1.jar](https://github.com/batuhansnl/burpinho/raw/main/releases/burpinho-4.0.1.jar)** dosyasını indirin.
 2. Burp Suite'i açın: **Extensions** → **Installed** → **Add**
 3. **Extension type:** `Java` seçin.
-4. **Extension file:** İndirdiğiniz `burpinho-4.0.0.jar` dosyasını seçip **Next** deyin.
+4. **Extension file:** İndirdiğiniz `burpinho-4.0.1.jar` dosyasını seçip **Next** deyin.
 5. Üst menüde **burpinho** sekmesi belirecektir!
 
 ### 2. Sağ Tık (Context Menu) Entegrasyonu
 Burp Proxy, Repeater veya Target Sitemap'teki herhangi bir isteğe sağ tıklayarak:
-* `⚡ Analyze Request (AI)`
-* `🔍 Send Host to Recon (Subdomain & IP)`
-* `🌐 Send Host to IP & Network Scanner`
-* `🛡️ Send URL to Vulnerability Scanner`
-* `🧪 Send URL to XSS Analyzer`
-* `💉 Send URL to SQLi Analyzer`
-* `🎯 Send Base URL to Path Fuzzer`
-* `💥 Send URL to Exploit & PoC Generator`
-* `🔐 Send to JWT Attacker (Auto-Detect)`
+* `⚡ İsteği Analiz Et (AI)`
+* `🔍 Host'u Keşfe Gönder (Subdomain & IP)`
+* `🌐 Host'u IP & Ağ Tarayıcısına Gönder`
+* `🛡️ URL'i Güvenlik Açığı Tarayıcısına Gönder`
+* `🧪 URL'i XSS Analizörüne Gönder`
+* `💉 URL'i SQLi Analizörüne Gönder`
+* `🎯 Base URL'i Path Fuzzer'a Gönder`
+* `💥 URL'i Exploit & PoC Üreticiye Gönder`
+* `🔐 JWT Saldırganına Gönder (Otomatik Tespit)`
+* `📝 Host/Parametreleri Wordlist Oluşturucuya Gönder`
 seçenekleriyle anında ilgili sekmeye hedefi aktarabilirsiniz.
 
 ---

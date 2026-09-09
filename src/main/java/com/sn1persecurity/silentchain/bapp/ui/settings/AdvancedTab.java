@@ -151,10 +151,10 @@ public class AdvancedTab extends JPanel {
 
     private void addUpgradeNotice(int row) {
         JTextArea notice = new JTextArea(
-                "⚡ burpinho v4.0.0 — Çok Modüllü Güvenlik Paketi\n" +
+                "⚡ burpinho v4.0.1 — Çok Modüllü Güvenlik Paketi\n" +
                 "Tüm modüller (Pasif AI, Keşif, IP Tarayıcı, Güvenlik Açığı Tarayıcısı,\n" +
-                "XSS, SQLi, Fuzzer, Exploit & PoC, Raporlayıcı ve Gelişmiş JWT Saldırı Motoru)\n" +
-                "yerel ve 100% bağımsız olarak çalışmaktadır.");
+                "XSS, SQLi, Fuzzer, Exploit & PoC, Raporlayıcı, JWT Saldırısı ve Wordlist Oluşturucu)\n" +
+                "yerel ve %100 bağımsız olarak çalışmaktadır.");
         notice.setEditable(false);
         notice.setOpaque(false);
         notice.setBorder(BorderFactory.createTitledBorder("Bilgi"));
