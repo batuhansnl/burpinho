@@ -48,7 +48,7 @@ public class ReportModule {
      * @param progress   status callback
      * @return path to the generated report file
      */
-    public String generateReport(ReconResult recon, ScanResult scan,
+    public String generateReport(ReconResult recon, ScanResult scan, com.sn1persecurity.silentchain.bapp.modules.ipscan.IpScanResult ipScan,
                                   String outputDir, Consumer<String> progress) {
         Consumer<String> log = msg -> {
             if (progress != null) progress.accept(msg);
@@ -131,6 +131,23 @@ public class ReportModule {
             html.append("<h3>Recon Tool Log</h3>\n<pre class='output'>\n");
             for (String s : recon.toolLog()) html.append(escHtml(s)).append("\n");
             html.append("</pre>\n");
+        }
+
+        // ---- IP & Network Scan Results ----
+        if (ipScan != null && !ipScan.getAliveHosts().isEmpty()) {
+            html.append("<h2>IP & Network Scan Results</h2>\n");
+            html.append("<p>Target Range: <strong>").append(escHtml(ipScan.targetInput())).append("</strong> | Total Alive Hosts: <strong>").append(ipScan.totalAlive()).append("</strong></p>\n");
+            html.append("<table><thead><tr><th>IP Address</th><th>PTR Hostname</th><th>Open Ports</th><th>HTTP Service / Banner</th><th>Latency</th></tr></thead><tbody>\n");
+            for (com.sn1persecurity.silentchain.bapp.modules.ipscan.IpHostEntry h : ipScan.getAliveHosts()) {
+                html.append("<tr>")
+                    .append("<td><strong>").append(escHtml(h.ip())).append("</strong></td>")
+                    .append("<td>").append(escHtml(h.hostname())).append("</td>")
+                    .append("<td>").append(escHtml(h.getPortsString())).append("</td>")
+                    .append("<td>").append(escHtml(h.httpService())).append("</td>")
+                    .append("<td>").append(h.responseTimeMs() > 0 ? h.responseTimeMs() + "ms" : "-").append("</td>")
+                    .append("</tr>\n");
+            }
+            html.append("</tbody></table>\n");
         }
 
         // ---- Scanner Results ----

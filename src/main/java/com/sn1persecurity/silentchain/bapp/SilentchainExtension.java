@@ -9,6 +9,7 @@ import com.sn1persecurity.silentchain.bapp.ai.AiService;
 import com.sn1persecurity.silentchain.bapp.config.Settings;
 import com.sn1persecurity.silentchain.bapp.config.SettingsPersistence;
 import com.sn1persecurity.silentchain.bapp.modules.exploit.ExploitModule;
+import com.sn1persecurity.silentchain.bapp.modules.ipscan.IpScannerModule;
 import com.sn1persecurity.silentchain.bapp.modules.recon.ReconModule;
 import com.sn1persecurity.silentchain.bapp.modules.report.ReportModule;
 import com.sn1persecurity.silentchain.bapp.modules.scanner.ScannerModule;
@@ -24,9 +25,14 @@ import com.sn1persecurity.silentchain.bapp.tools.ToolRegistry;
 import com.sn1persecurity.silentchain.bapp.tools.ToolRunner;
 import com.sn1persecurity.silentchain.bapp.ui.ContextMenuProvider;
 import com.sn1persecurity.silentchain.bapp.ui.main.MainTab;
+import com.sn1persecurity.silentchain.bapp.ui.modules.ExploitPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.FuzzerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.IpScanPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
-import com.sn1persecurity.silentchain.bapp.ui.modules.ScannerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.VulnScannerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.XssPanel;
 import com.sn1persecurity.silentchain.bapp.ui.settings.SettingsDialog;
 import com.sn1persecurity.silentchain.bapp.util.Banner;
 import com.sn1persecurity.silentchain.bapp.util.ThreadPool;
@@ -38,7 +44,7 @@ import java.util.Set;
 public class SilentchainExtension implements BurpExtension {
 
     public static final String EXTENSION_NAME = "burpinho";
-    public static final String EXTENSION_VERSION = "3.1.0";
+    public static final String EXTENSION_VERSION = "3.2.0";
 
     @Override
     public void initialize(MontoyaApi api) {
@@ -75,6 +81,7 @@ public class SilentchainExtension implements BurpExtension {
 
         // ---- Module engines ------------------------------------------------
         ReconModule reconModule = new ReconModule(api, toolRunner, toolRegistry);
+        IpScannerModule ipScannerModule = new IpScannerModule(api);
         ScannerModule scannerModule = new ScannerModule(api, toolRunner, toolRegistry);
         ExploitModule exploitModule = new ExploitModule(api, toolRunner, toolRegistry, dispatcher);
         ReportModule reportModule = new ReportModule(api, dispatcher, findingsRegistry);
@@ -96,14 +103,37 @@ public class SilentchainExtension implements BurpExtension {
             MainTab mainTab = new MainTab(api, settings, persistence, scanState,
                     counters, taskRegistry, findingsRegistry);
 
-            // Module panels
+            // Instantiate all dedicated 8 module panels
             ReconPanel reconPanel = new ReconPanel(api, reconModule, threadPool, scanState);
-            ScannerPanel scannerPanel = new ScannerPanel(api, scannerModule, threadPool, scanState);
+            IpScanPanel ipScanPanel = new IpScanPanel(api, ipScannerModule, threadPool, scanState);
+            VulnScannerPanel vulnScannerPanel = new VulnScannerPanel(api, scannerModule, threadPool, scanState);
+            XssPanel xssPanel = new XssPanel(api, threadPool, scanState);
+            SqliPanel sqliPanel = new SqliPanel(api, threadPool, scanState);
+            FuzzerPanel fuzzerPanel = new FuzzerPanel(api, threadPool, scanState);
+            ExploitPanel exploitPanel = new ExploitPanel(api, exploitModule, threadPool, scanState);
             ReportPanel reportPanel = new ReportPanel(api, reportModule, threadPool, scanState,
-                    reconPanel::getLastResult, scannerPanel::getLastResult);
+                    reconPanel::getLastResult, vulnScannerPanel::getLastResult, ipScanPanel::getLastResult);
 
-            mainTab.setModulePanels(reconPanel, scannerPanel, reportPanel);
-            contextMenu.setModulePanels(reconPanel, scannerPanel);
+            mainTab.setModulePanels(
+                    reconPanel,
+                    ipScanPanel,
+                    vulnScannerPanel,
+                    xssPanel,
+                    sqliPanel,
+                    fuzzerPanel,
+                    exploitPanel,
+                    reportPanel
+            );
+
+            contextMenu.setModulePanels(
+                    reconPanel,
+                    ipScanPanel,
+                    vulnScannerPanel,
+                    xssPanel,
+                    sqliPanel,
+                    fuzzerPanel,
+                    exploitPanel
+            );
 
             SettingsDialog settingsDialog = new SettingsDialog(parent, api, settings, persistence,
                     dispatcher, scanState, taskRegistry, toolRegistry, mainTab::onSettingsSaved);
@@ -128,4 +158,3 @@ public class SilentchainExtension implements BurpExtension {
         return Set.of(EnhancedCapability.AI_FEATURES);
     }
 }
-

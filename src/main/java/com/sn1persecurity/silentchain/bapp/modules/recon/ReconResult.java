@@ -4,47 +4,87 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Aggregated result of a full recon pipeline run.
- * Each field is populated by the corresponding tool (if installed).
+ * Contains both raw tool logs and structured SubdomainEntry objects
+ * mapping subdomain -> IP(s) -> Open Ports -> HTTP title & server.
  */
 public class ReconResult {
 
     private final String target;
     private final List<String> subdomains = new ArrayList<>();
     private final List<String> aliveDomains = new ArrayList<>();
-    private final List<String> httpServices = new ArrayList<>();   // JSON lines from httpx
-    private final List<String> openPorts = new ArrayList<>();      // JSON lines from naabu
+    private final List<String> httpServices = new ArrayList<>();
+    private final List<String> openPorts = new ArrayList<>();
     private final List<String> wafInfo = new ArrayList<>();
     private final List<String> techFingerprints = new ArrayList<>();
     private final List<String> crawledUrls = new ArrayList<>();
-    private final List<String> toolLog = new ArrayList<>();        // execution summary per tool
+    private final List<String> toolLog = new ArrayList<>();
     private final Map<String, Long> toolDurations = new LinkedHashMap<>();
+
+    // Structured Subdomain Entries mapping (subdomain -> SubdomainEntry)
+    private final Map<String, SubdomainEntry> entriesMap = new ConcurrentHashMap<>();
 
     public ReconResult(String target) {
         this.target = target;
     }
 
+    public synchronized SubdomainEntry getOrCreateEntry(String subdomain) {
+        String clean = subdomain.trim().toLowerCase();
+        return entriesMap.computeIfAbsent(clean, k -> {
+            SubdomainEntry e = new SubdomainEntry(k);
+            if (!subdomains.contains(k)) {
+                subdomains.add(k);
+            }
+            return e;
+        });
+    }
+
+    public List<SubdomainEntry> getEntries() {
+        return new ArrayList<>(entriesMap.values());
+    }
+
     // ---- Adders (called by ReconModule as tools finish) --------------------
 
-    public void addSubdomains(List<String> subs) {
+    public synchronized void addSubdomains(List<String> subs) {
         for (String s : subs) {
             String trimmed = s.trim().toLowerCase();
-            if (!trimmed.isEmpty() && !subdomains.contains(trimmed)) {
-                subdomains.add(trimmed);
+            if (!trimmed.isEmpty()) {
+                getOrCreateEntry(trimmed);
             }
         }
     }
 
-    public void addAliveDomains(List<String> alive)     { mergeUnique(aliveDomains, alive); }
-    public void addHttpServices(List<String> services)  { httpServices.addAll(services); }
-    public void addOpenPorts(List<String> ports)         { openPorts.addAll(ports); }
-    public void addWafInfo(List<String> waf)             { wafInfo.addAll(waf); }
-    public void addTechFingerprints(List<String> tech)   { techFingerprints.addAll(tech); }
-    public void addCrawledUrls(List<String> urls)        { mergeUnique(crawledUrls, urls); }
+    public synchronized void addAliveDomains(List<String> alive) {
+        mergeUnique(aliveDomains, alive);
+        for (String a : alive) {
+            getOrCreateEntry(a).setAlive(true);
+        }
+    }
 
-    public void logTool(String toolName, String status, long durationMs) {
+    public synchronized void addHttpServices(List<String> services) {
+        httpServices.addAll(services);
+    }
+
+    public synchronized void addOpenPorts(List<String> ports) {
+        openPorts.addAll(ports);
+    }
+
+    public synchronized void addWafInfo(List<String> waf) {
+        wafInfo.addAll(waf);
+    }
+
+    public synchronized void addTechFingerprints(List<String> tech) {
+        techFingerprints.addAll(tech);
+    }
+
+    public synchronized void addCrawledUrls(List<String> urls) {
+        mergeUnique(crawledUrls, urls);
+    }
+
+    public synchronized void logTool(String toolName, String status, long durationMs) {
         toolLog.add(toolName + ": " + status + " (" + durationMs + "ms)");
         toolDurations.put(toolName, durationMs);
     }
@@ -62,11 +102,14 @@ public class ReconResult {
     public List<String> toolLog()        { return toolLog; }
     public Map<String, Long> toolDurations() { return toolDurations; }
 
-    /** Total unique subdomains found. */
     public int subdomainCount() { return subdomains.size(); }
-
-    /** Total unique alive domains. */
-    public int aliveCount() { return aliveDomains.size(); }
+    public int aliveCount() {
+        int c = 0;
+        for (SubdomainEntry e : entriesMap.values()) {
+            if (e.isAlive()) c++;
+        }
+        return Math.max(c, aliveDomains.size());
+    }
 
     /**
      * Produce a compact text summary for logging / AI analysis.
@@ -75,15 +118,14 @@ public class ReconResult {
         StringBuilder sb = new StringBuilder();
         sb.append("=== RECON RESULT: ").append(target).append(" ===\n\n");
 
-        sb.append("Subdomains found: ").append(subdomains.size()).append("\n");
-        for (String s : subdomains) sb.append("  ").append(s).append("\n");
-
-        sb.append("\nAlive domains: ").append(aliveDomains.size()).append("\n");
-        for (String s : aliveDomains) sb.append("  ").append(s).append("\n");
-
-        if (!httpServices.isEmpty()) {
-            sb.append("\nHTTP Services:\n");
-            for (String s : httpServices) sb.append("  ").append(s).append("\n");
+        sb.append("Subdomains (").append(subdomains.size()).append("):\n");
+        for (SubdomainEntry e : entriesMap.values()) {
+            sb.append("  • ").append(e.subdomain())
+              .append(" -> IP: ").append(e.getIpsString())
+              .append(" | Ports: ").append(e.getPortsString())
+              .append(" | Title: ").append(e.pageTitle())
+              .append(" | Server: ").append(e.serverHeader())
+              .append("\n");
         }
 
         if (!openPorts.isEmpty()) {
@@ -103,9 +145,9 @@ public class ReconResult {
 
         if (!crawledUrls.isEmpty()) {
             sb.append("\nCrawled URLs: ").append(crawledUrls.size()).append("\n");
-            int max = Math.min(crawledUrls.size(), 50);
+            int max = Math.min(crawledUrls.size(), 30);
             for (int i = 0; i < max; i++) sb.append("  ").append(crawledUrls.get(i)).append("\n");
-            if (crawledUrls.size() > 50) sb.append("  ... and ").append(crawledUrls.size() - 50).append(" more\n");
+            if (crawledUrls.size() > 30) sb.append("  ... and ").append(crawledUrls.size() - 30).append(" more\n");
         }
 
         sb.append("\nTool Execution Log:\n");
@@ -113,8 +155,6 @@ public class ReconResult {
 
         return sb.toString();
     }
-
-    // ---- Helpers -----------------------------------------------------------
 
     private static void mergeUnique(List<String> target, List<String> source) {
         for (String s : source) {

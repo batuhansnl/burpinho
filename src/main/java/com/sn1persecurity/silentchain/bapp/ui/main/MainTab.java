@@ -10,32 +10,34 @@ import com.sn1persecurity.silentchain.bapp.state.FindingsRegistry;
 import com.sn1persecurity.silentchain.bapp.state.ScanState;
 import com.sn1persecurity.silentchain.bapp.state.TaskRegistry;
 import com.sn1persecurity.silentchain.bapp.ui.dialogs.DataConsentDialog;
+import com.sn1persecurity.silentchain.bapp.ui.modules.ExploitPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.FuzzerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.IpScanPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReconPanel;
-import com.sn1persecurity.silentchain.bapp.ui.modules.ScannerPanel;
 import com.sn1persecurity.silentchain.bapp.ui.modules.ReportPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.SqliPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.VulnScannerPanel;
+import com.sn1persecurity.silentchain.bapp.ui.modules.XssPanel;
 
 import javax.swing.BoxLayout;
-import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.Timer;
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.net.URI;
 
 /**
- * Root burpinho tab — tabbed layout with modules:
- *   Tab 1: Passive AI Analysis (original layout)
- *   Tab 2: Recon (real tools: subfinder, httpx, naabu, etc.)
- *   Tab 3: Scanner (real tools: nuclei, dalfox, sqlmap, etc.)
- *   Tab 4: Report (HTML report generation)
- *
- * The original passive analysis tab is kept with:
- *   NORTH  : header + statistics + runtime status + control bar
- *   CENTER : vertical split — active tasks (top) / findings (bottom)
- *   SOUTH  : console pane
+ * Root burpinho tab — tabbed layout with 9 dedicated modules:
+ *   Tab 1: Passive AI
+ *   Tab 2: Recon (Subdomain & IP)
+ *   Tab 3: IP & Network Scanner
+ *   Tab 4: Vulnerability Scanner
+ *   Tab 5: XSS Analyzer
+ *   Tab 6: SQLi Analyzer
+ *   Tab 7: Path Fuzzer
+ *   Tab 8: Exploit & PoC Advisor
+ *   Tab 9: Report Generator
  */
 public class MainTab extends JPanel implements ControlBar.Actions {
 
@@ -54,11 +56,16 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     private final FindingsTablePanel findingsTablePanel;
     private final ConsolePane consolePane;
 
-    // Module panels (set after construction via setters)
+    // Module panels
     private ReconPanel reconPanel;
-    private ScannerPanel scannerPanel;
+    private IpScanPanel ipScanPanel;
+    private VulnScannerPanel vulnScannerPanel;
+    private XssPanel xssPanel;
+    private SqliPanel sqliPanel;
+    private FuzzerPanel fuzzerPanel;
+    private ExploitPanel exploitPanel;
     private ReportPanel reportPanel;
-    private JTabbedPane moduleTabs;
+    private final JTabbedPane moduleTabs;
 
     public MainTab(MontoyaApi api,
                    Settings settings,
@@ -82,7 +89,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         this.findingsTablePanel = new FindingsTablePanel(findingsRegistry);
         this.consolePane = new ConsolePane(settings.theme());
 
-        // ---- Build passive analysis panel (original layout) ----
+        // ---- Build passive analysis panel (Tab 1) ----
         JPanel passivePanel = new JPanel(new BorderLayout());
 
         JPanel north = new JPanel();
@@ -103,7 +110,6 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         // ---- Build tabbed pane ----
         moduleTabs = new JTabbedPane();
         moduleTabs.addTab("Passive AI", passivePanel);
-        // Recon, Scanner, Report tabs are added via setModulePanels()
 
         add(moduleTabs, BorderLayout.CENTER);
 
@@ -115,22 +121,49 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     }
 
     /**
-     * Wire the module panels after construction (called from SilentchainExtension).
-     * This avoids circular dependency during initialization.
+     * Wire all module panels after construction.
      */
-    public void setModulePanels(ReconPanel recon, ScannerPanel scanner, ReportPanel report) {
+    public void setModulePanels(ReconPanel recon,
+                                IpScanPanel ipScan,
+                                VulnScannerPanel vulnScanner,
+                                XssPanel xss,
+                                SqliPanel sqli,
+                                FuzzerPanel fuzzer,
+                                ExploitPanel exploit,
+                                ReportPanel report) {
         this.reconPanel = recon;
-        this.scannerPanel = scanner;
+        this.ipScanPanel = ipScan;
+        this.vulnScannerPanel = vulnScanner;
+        this.xssPanel = xss;
+        this.sqliPanel = sqli;
+        this.fuzzerPanel = fuzzer;
+        this.exploitPanel = exploit;
         this.reportPanel = report;
-        moduleTabs.addTab("Recon", recon);
-        moduleTabs.addTab("Scanner", scanner);
-        moduleTabs.addTab("Report", report);
+
+        moduleTabs.addTab("Recon (Subdomain & IP)", recon);
+        moduleTabs.addTab("IP & Network Scanner", ipScan);
+        moduleTabs.addTab("Vulnerability Scanner", vulnScanner);
+        moduleTabs.addTab("XSS Analyzer", xss);
+        moduleTabs.addTab("SQLi Analyzer", sqli);
+        moduleTabs.addTab("Path Fuzzer", fuzzer);
+        moduleTabs.addTab("Exploit & PoC", exploit);
+        moduleTabs.addTab("Report Generator", report);
     }
 
-    /** Get the recon panel for context menu integration. */
-    public ReconPanel getReconPanel() { return reconPanel; }
-    /** Get the scanner panel for context menu integration. */
-    public ScannerPanel getScannerPanel() { return scannerPanel; }
+    public ReconPanel getReconPanel()               { return reconPanel; }
+    public IpScanPanel getIpScanPanel()             { return ipScanPanel; }
+    public VulnScannerPanel getVulnScannerPanel()   { return vulnScannerPanel; }
+    public XssPanel getXssPanel()                   { return xssPanel; }
+    public SqliPanel getSqliPanel()                 { return sqliPanel; }
+    public FuzzerPanel getFuzzerPanel()             { return fuzzerPanel; }
+    public ExploitPanel getExploitPanel()           { return exploitPanel; }
+    public ReportPanel getReportPanel()             { return reportPanel; }
+
+    public void switchToTab(int index) {
+        if (index >= 0 && index < moduleTabs.getTabCount()) {
+            moduleTabs.setSelectedIndex(index);
+        }
+    }
 
     private void startRefreshTimer() {
         Timer timer = new Timer(1500, e -> refreshNow());
@@ -146,23 +179,20 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         findingsTablePanel.refresh();
     }
 
-    /** Re-apply the console theme (called after a Settings save changes it). */
     public void applyTheme() {
         consolePane.applyTheme(settings.theme());
     }
 
-    /** Wire the Settings button to open the modal dialog (set post-construction). */
     public void setSettingsOpener(Runnable opener) {
         this.settingsOpener = opener;
     }
 
-    /** Called after the Settings dialog saves: re-theme + refresh immediately. */
     public void onSettingsSaved() {
         applyTheme();
         refreshNow();
     }
 
-    // ---- ControlBar.Actions -------------------------------------------------
+    // ---- ControlBar.Actions implementation ----
 
     @Override
     public void onSettings() {
@@ -173,64 +203,60 @@ public class MainTab extends JPanel implements ControlBar.Actions {
 
     @Override
     public void onToggleScanning() {
-        boolean now = !settings.passiveEnabled();
-
-        // Consent gate when enabling passive analysis.
-        if (now && !DataConsentDialog.ensureConsent(api, persistence)) {
-            controlBar.refresh();
-            scanState.info("burpinho: scanning not started (consent declined).");
-            return;
+        if (!settings.passiveEnabled()) {
+            // Turning ON: check consent
+            if (!DataConsentDialog.ensureConsent(api, persistence)) {
+                scanState.info("Passive scanning cancelled (consent required).");
+                return;
+            }
+            settings.setPassiveEnabled(true);
+            persistence.save(settings);
+            scanState.info("Passive scanning ENABLED.");
+        } else {
+            // Turning OFF
+            settings.setPassiveEnabled(false);
+            persistence.save(settings);
+            scanState.info("Passive scanning DISABLED.");
         }
-
-        settings.setPassiveEnabled(now);
-        persistence.save(settings);
-        controlBar.refresh();
-        runtimeStatusLine.refresh();
-        scanState.info("burpinho: passive scanning " + (now ? "STARTED" : "STOPPED") + ".");
+        refreshNow();
     }
 
     @Override
     public void onClearCompleted() {
-        int removed = taskRegistry.clearCompleted();
-        taskTablePanel.refresh();
-        scanState.info("burpinho: cleared " + removed + " completed task(s).");
+        taskRegistry.clearCompleted();
+        refreshNow();
     }
 
     @Override
     public void onCancelAll() {
-        int cancelled = taskRegistry.cancelAll();
-        taskTablePanel.refresh();
-        scanState.info("burpinho: cancelled " + cancelled + " task(s).");
+        int count = taskRegistry.cancelAll();
+        scanState.info("Cancelled " + count + " active task(s).");
+        refreshNow();
     }
 
     @Override
     public void onTogglePause() {
-        boolean paused = scanState.togglePaused();
-        controlBar.refresh();
-        runtimeStatusLine.refresh();
-        scanState.info("burpinho: tasks " + (paused ? "PAUSED" : "RESUMED") + ".");
+        boolean next = !scanState.isPaused();
+        scanState.setPaused(next);
+        scanState.info("Scanning " + (next ? "PAUSED" : "RESUMED") + ".");
+        refreshNow();
     }
 
     @Override
     public void onExportCsv() {
         String path = CsvExporter.export(this, findingsRegistry);
         if (path != null) {
-            scanState.info("burpinho: exported findings to " + path);
-        } else {
-            scanState.info("burpinho: CSV export cancelled or failed.");
+            scanState.info("Exported findings to " + path);
         }
     }
 
     @Override
     public void onToolStatus() {
-        // Switch to Recon tab to show tool status via settings
-        if (settingsOpener != null) {
-            settingsOpener.run();
-        }
-    }
-
-    /** Convenience for registration. */
-    public JComponent component() {
-        return this;
+        JOptionPane.showMessageDialog(this,
+                "burpinho v3.2.0 — 100% Self-Contained Pure Java Architecture.\n\n" +
+                "All core engines (Recon, IP/CIDR Scanner, Vulnerability Scanner, XSS,\n" +
+                "SQLi, Path Fuzzer, and Reports) are natively built-in.\n" +
+                "No external Go, Python, or CLI installations required for full operation.",
+                "Tool Status", JOptionPane.INFORMATION_MESSAGE);
     }
 }

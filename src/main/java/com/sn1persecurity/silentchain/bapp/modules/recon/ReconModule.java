@@ -332,43 +332,48 @@ public class ReconModule {
         List<String> subdomains = new ArrayList<>(result.subdomains());
         List<String> alive = Collections.synchronizedList(new ArrayList<>());
 
-        ExecutorService pool = Executors.newFixedThreadPool(20);
+        ExecutorService pool = Executors.newFixedThreadPool(25);
         for (String sub : subdomains) {
             if (cancelled) break;
             pool.submit(() -> {
                 try {
-                    InetAddress addr = InetAddress.getByName(sub);
-                    if (addr != null) {
+                    InetAddress[] addrs = InetAddress.getAllByName(sub);
+                    if (addrs != null && addrs.length > 0) {
                         alive.add(sub);
+                        SubdomainEntry entry = result.getOrCreateEntry(sub);
+                        for (InetAddress a : addrs) {
+                            entry.addIp(a.getHostAddress());
+                        }
                     }
                 } catch (Throwable ignored) {}
             });
         }
         pool.shutdown();
         try {
-            pool.awaitTermination(15, TimeUnit.SECONDS);
+            pool.awaitTermination(20, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
 
         result.addAliveDomains(alive);
         long ms = System.currentTimeMillis() - start;
         result.logTool("builtin-dns", "resolved " + alive.size() + "/" + subdomains.size() + " live hosts", ms);
-        log.accept("Built-in DNS resolution: " + alive.size() + " live hosts verified.");
+        log.accept("Built-in DNS resolution: " + alive.size() + " live hosts resolved with IP addresses.");
     }
 
     private void runBuiltinHttpProbe(List<String> domains, ReconResult result, Consumer<String> log) {
         long start = System.currentTimeMillis();
         List<String> services = Collections.synchronizedList(new ArrayList<>());
-        ExecutorService pool = Executors.newFixedThreadPool(15);
+        ExecutorService pool = Executors.newFixedThreadPool(20);
 
-        int limit = Math.min(domains.size(), 40);
+        int limit = Math.min(domains.size(), 60);
         for (int i = 0; i < limit && !cancelled; i++) {
             String domain = domains.get(i);
             pool.submit(() -> {
+                SubdomainEntry entry = result.getOrCreateEntry(domain);
                 for (String proto : List.of("https://", "http://")) {
                     try {
                         URL url = new URI(proto + domain).toURL();
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/3.1");
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/3.2");
                         conn.setConnectTimeout(4000);
                         conn.setReadTimeout(4000);
                         conn.setInstanceFollowRedirects(true);
@@ -390,8 +395,13 @@ public class ReconModule {
                             }
                         } catch (Throwable ignored) {}
 
-                        String entry = "[" + code + "] " + proto + domain + " | Title: " + title + " | Server: " + server;
-                        services.add(entry);
+                        entry.setHttpStatus(code);
+                        entry.setPageTitle(title);
+                        entry.setServerHeader(server);
+                        entry.setAlive(true);
+
+                        String serviceEntry = "[" + code + "] " + proto + domain + " | Title: " + title + " | Server: " + server;
+                        services.add(serviceEntry);
                         break;
                     } catch (Throwable ignored) {}
                 }
@@ -399,7 +409,7 @@ public class ReconModule {
         }
         pool.shutdown();
         try {
-            pool.awaitTermination(15, TimeUnit.SECONDS);
+            pool.awaitTermination(20, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
 
         result.addHttpServices(services);
@@ -416,25 +426,38 @@ public class ReconModule {
         };
         List<String> open = Collections.synchronizedList(new ArrayList<>());
 
-        ExecutorService pool = Executors.newFixedThreadPool(15);
-        for (int port : topPorts) {
-            if (cancelled) break;
-            pool.submit(() -> {
-                try (Socket s = new Socket()) {
-                    s.connect(new InetSocketAddress(target, port), 600);
-                    open.add(target + ":" + port + " (" + getPortServiceName(port) + " - OPEN)");
-                } catch (Throwable ignored) {}
-            });
+        List<String> targetHosts = new ArrayList<>();
+        targetHosts.add(target);
+        for (String sub : result.aliveDomains()) {
+            if (!targetHosts.contains(sub)) {
+                targetHosts.add(sub);
+            }
+            if (targetHosts.size() >= 15) break;
+        }
+
+        ExecutorService pool = Executors.newFixedThreadPool(25);
+        for (String host : targetHosts) {
+            SubdomainEntry entry = result.getOrCreateEntry(host);
+            for (int port : topPorts) {
+                if (cancelled) break;
+                pool.submit(() -> {
+                    try (Socket s = new Socket()) {
+                        s.connect(new InetSocketAddress(host, port), 600);
+                        entry.addOpenPort(port);
+                        open.add(host + ":" + port + " (" + getPortServiceName(port) + " - OPEN)");
+                    } catch (Throwable ignored) {}
+                });
+            }
         }
         pool.shutdown();
         try {
-            pool.awaitTermination(8, TimeUnit.SECONDS);
+            pool.awaitTermination(15, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
 
         result.addOpenPorts(open);
         long ms = System.currentTimeMillis() - start;
-        result.logTool("builtin-naabu", "discovered " + open.size() + " open ports", ms);
-        log.accept("Built-in Port Scan: " + open.size() + " open ports detected on " + target);
+        result.logTool("builtin-naabu", "discovered " + open.size() + " open ports across targets", ms);
+        log.accept("Built-in Port Scan: " + open.size() + " open ports discovered across alive subdomains.");
     }
 
     private void runBuiltinWafDetector(String target, ReconResult result, Consumer<String> log) {
