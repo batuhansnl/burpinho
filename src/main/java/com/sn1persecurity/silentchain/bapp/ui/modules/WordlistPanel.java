@@ -19,8 +19,13 @@ import java.util.List;
 
 /**
  * Wordlist Generation Panel for burpinho.
- * Generates highly tailored security dictionaries in 4 progressive stages with count presets,
- * character length filters, mutation switches, and instant export/bridges.
+ * Generates highly tailored security dictionaries in 5 progressive stages/size tiers:
+ *   1. Aşama: 100 Kelime (Hızlı Keşif)
+ *   2. Aşama: 1.000 Kelime (1K - Standart)
+ *   3. Aşama: 10.000 Kelime (10K - Varsayılan)
+ *   4. Aşama: 100.000 Kelime (100K - Kapsamlı)
+ *   5. Aşama: Özel (Manuel Belirleme)
+ * With character length filters (min/max), mutation switches, and instant export/bridges.
  */
 public class WordlistPanel extends JPanel {
 
@@ -35,34 +40,29 @@ public class WordlistPanel extends JPanel {
 
     // Inputs
     private final JTextArea keywordsArea = new JTextArea(4, 25);
-    private final JComboBox<String> stageCombo = new JComboBox<>(new String[]{
-            "Tüm Aşamalar (1, 2, 3, 4 - Kapsamlı)",
-            "Aşama 1: Temel Varyasyonlar & Yıllar",
-            "Aşama 2: Kombinasyonlar, Ayırıcılar & Roller",
-            "Aşama 3: Leetspeak & Özel Karakterler",
-            "Aşama 4: Derin Mutasyonlar & Fuzzing"
-    });
 
-    private final JComboBox<String> countPresetCombo = new JComboBox<>(new String[]{
-            "100 Kelime",
-            "1.000 Kelime (1K)",
-            "10.000 Kelime (10K)",
-            "100.000 Kelime (100K)",
-            "Özel (Manuel Giriş)..."
+    // 5 Progressive Stages / Size Tiers
+    private final JComboBox<String> stagePresetCombo = new JComboBox<>(new String[]{
+            "1. Aşama: 100 Kelime (Hızlı Keşif)",
+            "2. Aşama: 1.000 Kelime (1K - Standart)",
+            "3. Aşama: 10.000 Kelime (10K - Varsayılan)",
+            "4. Aşama: 100.000 Kelime (100K - Kapsamlı / Derin)",
+            "5. Aşama: Özel (Manuel Belirleme)..."
     });
     private final JSpinner customCountSpinner = new JSpinner(new SpinnerNumberModel(5000, 10, 1000000, 500));
 
+    // Optional Character Length Filters
     private final JSpinner minLengthSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 128, 1));
     private final JSpinner maxLengthSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 128, 1));
 
     // Mutation Checkboxes
-    private final JCheckBox chkCase = new JCheckBox("Harf Varyasyonları (lower, UPPER, Capitalize)", true);
+    private final JCheckBox chkCase = new JCheckBox("Harf Varyasyonları (lower, UPPER, Capitalize, camelCase)", true);
     private final JCheckBox chkLeet = new JCheckBox("Leetspeak Değişimleri (a->@/4, e->3, i->1, o->0, s->$)", true);
-    private final JCheckBox chkYears = new JCheckBox("Yıllar & Numaralar (2020..2027, 123, 01..99)", true);
+    private final JCheckBox chkYears = new JCheckBox("Yıllar & Numaralar (2020..2028, 123, 01..99)", true);
     private final JCheckBox chkDelimiters = new JCheckBox("Ayırıcılar (_, -, ., @, #, $, !)", true);
     private final JCheckBox chkExtensions = new JCheckBox("Web & Dosya Uzantıları (.php, .json, .bak, .sql, .env)", true);
 
-    // Buttons
+    // Action Buttons
     private final JButton generateBtn = new JButton("⚡ Wordlist Oluştur");
     private final JButton cancelBtn = new JButton("⏹ İptal Et");
     private final JButton clearBtn = new JButton("🗑 Temizle");
@@ -76,7 +76,7 @@ public class WordlistPanel extends JPanel {
     private final JTextArea logArea = new JTextArea();
     private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Oluşturulan Toplam Kelime: 0 | Aşama: Tüm Aşamalar | Karakter Filtresi: Yok");
+    private final JLabel summaryLabel = new JLabel("Oluşturulan Toplam Kelime: 0 | Aşama: 3. Aşama (10.000 Kelime) | Karakter Filtresi: Yok");
 
     private List<String> currentGeneratedList = new ArrayList<>();
 
@@ -108,9 +108,9 @@ public class WordlistPanel extends JPanel {
         // ---- Top Configuration Panel ----
         JPanel topContainer = new JPanel(new BorderLayout(6, 6));
 
-        // Left Config: Keywords and Stage/Count Presets
+        // Left Config: Keywords and 5 Stages
         JPanel leftConfig = new JPanel(new GridBagLayout());
-        leftConfig.setBorder(BorderFactory.createTitledBorder("Anahtar Kelimeler & Kriterler"));
+        leftConfig.setBorder(BorderFactory.createTitledBorder("Anahtar Kelimeler & 5 Aşamalı Üretim Kriterleri"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(3, 4, 3, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -126,31 +126,25 @@ public class WordlistPanel extends JPanel {
         kwScroll.setPreferredSize(new Dimension(280, 75));
         leftConfig.add(kwScroll, gbc);
 
-        // Stage Selection
+        // 5 Progressive Stages / Size Tiers
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
-        leftConfig.add(new JLabel("Üretim Aşaması:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 2;
-        leftConfig.add(stageCombo, gbc);
-
-        // Count Presets
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
-        leftConfig.add(new JLabel("Kelime Sayısı Limiti:"), gbc);
+        leftConfig.add(new JLabel("Üretim Aşaması / Boyutu:"), gbc);
 
         gbc.gridx = 1; gbc.gridwidth = 1;
-        countPresetCombo.setSelectedIndex(2); // Default: 10.000
-        leftConfig.add(countPresetCombo, gbc);
+        stagePresetCombo.setSelectedIndex(2); // Default: 3. Aşama (10.000 Kelime)
+        leftConfig.add(stagePresetCombo, gbc);
 
         gbc.gridx = 2;
         customCountSpinner.setEnabled(false);
         leftConfig.add(customCountSpinner, gbc);
 
-        countPresetCombo.addActionListener(e -> {
-            boolean isCustom = countPresetCombo.getSelectedIndex() == 4;
+        stagePresetCombo.addActionListener(e -> {
+            boolean isCustom = stagePresetCombo.getSelectedIndex() == 4;
             customCountSpinner.setEnabled(isCustom);
         });
 
         // Min & Max Length
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
         leftConfig.add(new JLabel("Karakter Hane Sayısı:"), gbc);
 
         gbc.gridx = 1; gbc.gridwidth = 2;
@@ -269,9 +263,6 @@ public class WordlistPanel extends JPanel {
             return;
         }
 
-        int stageIdx = stageCombo.getSelectedIndex();
-        int stageLevel = stageIdx; // 0 = All, 1 = Stage 1, 2 = Stage 2, 3 = Stage 3, 4 = Stage 4
-
         int maxCount = getSelectedMaxCount();
         int minLength = (int) minLengthSpinner.getValue();
         int maxLength = (int) maxLengthSpinner.getValue();
@@ -285,7 +276,7 @@ public class WordlistPanel extends JPanel {
 
         WordlistConfig config = new WordlistConfig(
                 keywords,
-                stageLevel,
+                0, // All progressive stages up to target count
                 maxCount,
                 minLength,
                 maxLength,
@@ -309,7 +300,7 @@ public class WordlistPanel extends JPanel {
         logArea.setText("");
         outputArea.setText("");
 
-        scanState.info("burpinho [WORDLIST]: Wordlist oluşturma başlatıldı. Anahtar kelimeler: " + keywords.size() + ", Max: " + maxCount);
+        scanState.info("burpinho [WORDLIST]: Wordlist oluşturma başlatıldı. Anahtar kelimeler: " + keywords.size() + ", Hedef Limit: " + maxCount);
 
         threadPool.submit(() -> {
             long t0 = System.currentTimeMillis();
@@ -329,9 +320,9 @@ public class WordlistPanel extends JPanel {
 
                     statusLabel.setText("✅ " + results.size() + " kelime oluşturuldu (" + elapsed + " ms)");
                     summaryLabel.setText("Oluşturulan Toplam Kelime: " + results.size() +
-                            " | Aşama: " + stageCombo.getSelectedItem() +
+                            " | Seçilen Aşama: " + stagePresetCombo.getSelectedItem() +
                             " | Limit: " + maxCount +
-                            " | Min/Max: " + (minLength > 0 ? minLength : "-") + "/" + (maxLength > 0 ? maxLength : "-") +
+                            " | Min/Max Hane: " + (minLength > 0 ? minLength : "-") + "/" + (maxLength > 0 ? maxLength : "-") +
                             " | Süre: " + elapsed + "ms");
 
                     copyBtn.setEnabled(!results.isEmpty());
@@ -357,13 +348,13 @@ public class WordlistPanel extends JPanel {
     }
 
     private int getSelectedMaxCount() {
-        int idx = countPresetCombo.getSelectedIndex();
+        int idx = stagePresetCombo.getSelectedIndex();
         return switch (idx) {
-            case 0 -> 100;
-            case 1 -> 1000;
-            case 2 -> 10000;
-            case 3 -> 100000;
-            case 4 -> (int) customCountSpinner.getValue();
+            case 0 -> 100;     // 1. Aşama
+            case 1 -> 1000;    // 2. Aşama
+            case 2 -> 10000;   // 3. Aşama
+            case 3 -> 100000;  // 4. Aşama
+            case 4 -> (int) customCountSpinner.getValue(); // 5. Aşama: Özel
             default -> 10000;
         };
     }
@@ -392,7 +383,7 @@ public class WordlistPanel extends JPanel {
         logArea.setText("");
         currentGeneratedList.clear();
         statusLabel.setText("Hazır");
-        summaryLabel.setText("Oluşturulan Toplam Kelime: 0 | Aşama: Tüm Aşamalar | Karakter Filtresi: Yok");
+        summaryLabel.setText("Oluşturulan Toplam Kelime: 0 | Aşama: 3. Aşama (10.000 Kelime) | Karakter Filtresi: Yok");
         copyBtn.setEnabled(false);
         saveFileBtn.setEnabled(false);
         sendFuzzerBtn.setEnabled(false);
@@ -434,7 +425,6 @@ public class WordlistPanel extends JPanel {
         if (fuzzerPanel != null) {
             List<String> words = getWordsFromOutput();
             if (words.isEmpty()) return;
-            // Bridge words to fuzzer if supported
             JOptionPane.showMessageDialog(this,
                     words.size() + " kelime Path Fuzzer için hafızaya alındı!",
                     "Aktarıldı", JOptionPane.INFORMATION_MESSAGE);

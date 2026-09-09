@@ -7,7 +7,7 @@ import java.util.List;
  */
 public record WordlistConfig(
         List<String> keywords,
-        int stageLevel,              // 1 to 4 (or 0 for All Stages)
+        int stageLevel,              // 0 for All Progressive Stages
         int maxCount,                // 100, 1000, 10000, 100000, or custom
         int minLength,               // 0 for no min limit
         int maxLength,               // 0 for no max limit
@@ -17,6 +17,21 @@ public record WordlistConfig(
         boolean includeDelimiters,
         boolean includeCommonExtensions
 ) {
+    public WordlistConfig(
+            List<String> keywords,
+            int maxCount,
+            int minLength,
+            int maxLength,
+            boolean includeCaseVariations,
+            boolean includeLeetspeak,
+            boolean includeYearsAndNumbers,
+            boolean includeDelimiters,
+            boolean includeCommonExtensions
+    ) {
+        this(keywords, 0, maxCount, minLength, maxLength,
+                includeCaseVariations, includeLeetspeak, includeYearsAndNumbers, includeDelimiters, includeCommonExtensions);
+    }
+
     public static WordlistConfig defaults(List<String> keywords, int maxCount) {
         return new WordlistConfig(
                 keywords,
