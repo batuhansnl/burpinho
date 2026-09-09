@@ -47,7 +47,8 @@ public class ToolRunner {
         String toolName = command.name();
 
         // Check if the tool is installed
-        if (!registry.isInstalled(toolName)) {
+        String exePath = registry.getPath(toolName);
+        if (exePath == null || exePath.isEmpty()) {
             api.logging().logToError("ToolRunner: " + toolName + " is not installed.");
             return ToolResult.notInstalled(toolName);
         }
@@ -55,18 +56,23 @@ public class ToolRunner {
         long startTime = System.currentTimeMillis();
 
         try {
-            ProcessBuilder pb = new ProcessBuilder(command.command());
+            List<String> cmd = new ArrayList<>(command.command());
+            cmd.set(0, exePath);
+
+            ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.redirectErrorStream(false);
             pb.environment().putAll(System.getenv());
 
-            // Ensure Go binaries in typical paths are found
-            String path = pb.environment().getOrDefault("PATH", "");
+            String userHome = System.getProperty("user.home", "");
+            String envPath = pb.environment().getOrDefault("PATH", "");
             pb.environment().put("PATH",
-                    path + ":/usr/local/bin:/usr/bin:/opt/homebrew/bin"
-                    + ":" + System.getProperty("user.home") + "/go/bin"
-                    + ":" + System.getProperty("user.home") + "/.local/bin");
+                    "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
+                    + userHome + "/go/bin:"
+                    + userHome + "/.local/bin:"
+                    + userHome + "/.cargo/bin:"
+                    + envPath);
 
-            api.logging().logToOutput("ToolRunner: starting " + toolName + " → " + String.join(" ", command.command()));
+            api.logging().logToOutput("ToolRunner: starting " + toolName + " → " + String.join(" ", cmd));
 
             Process process = pb.start();
 

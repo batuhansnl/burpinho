@@ -85,7 +85,13 @@ public class ToolRegistry {
      * Get the absolute path to a tool, or null if not found.
      */
     public String getPath(String toolName) {
-        return pathCache.computeIfAbsent(toolName, this::findTool);
+        String cached = pathCache.get(toolName);
+        if (cached != null) {
+            return cached.isEmpty() ? null : cached;
+        }
+        String found = findTool(toolName);
+        pathCache.put(toolName, found != null ? found : "");
+        return found;
     }
 
     /**
@@ -166,14 +172,25 @@ public class ToolRegistry {
     // ---- Private helpers ----------------------------------------------------
 
     private String findTool(String name) {
-        // 1. Check common paths directly (faster than which)
+        String userHome = System.getProperty("user.home", "");
+
+        // 1. Check exhaustive common paths directly
         String[] commonPaths = {
+            "/opt/homebrew/bin/" + name,
+            "/opt/homebrew/sbin/" + name,
             "/usr/local/bin/" + name,
             "/usr/bin/" + name,
-            "/opt/homebrew/bin/" + name,
-            System.getProperty("user.home") + "/go/bin/" + name,
-            System.getProperty("user.home") + "/.local/bin/" + name,
-            "/snap/bin/" + name
+            "/bin/" + name,
+            "/usr/sbin/" + name,
+            "/sbin/" + name,
+            userHome + "/go/bin/" + name,
+            userHome + "/.local/bin/" + name,
+            userHome + "/.cargo/bin/" + name,
+            "/snap/bin/" + name,
+            "/Library/Frameworks/Python.framework/Versions/Current/bin/" + name,
+            "/Library/Frameworks/Python.framework/Versions/3.12/bin/" + name,
+            "/Library/Frameworks/Python.framework/Versions/3.11/bin/" + name,
+            "/Library/Frameworks/Python.framework/Versions/3.10/bin/" + name
         };
 
         for (String path : commonPaths) {
@@ -184,20 +201,22 @@ public class ToolRegistry {
             }
         }
 
-        // 2. Fall back to "which" command
+        // 2. Fall back to "which" command with expanded PATH
         try {
             ProcessBuilder pb = new ProcessBuilder("which", name);
             pb.environment().putAll(System.getenv());
-            String path = pb.environment().getOrDefault("PATH", "");
+            String envPath = pb.environment().getOrDefault("PATH", "");
             pb.environment().put("PATH",
-                    path + ":/usr/local/bin:/usr/bin:/opt/homebrew/bin"
-                    + ":" + System.getProperty("user.home") + "/go/bin"
-                    + ":" + System.getProperty("user.home") + "/.local/bin");
+                    "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
+                    + userHome + "/go/bin:"
+                    + userHome + "/.local/bin:"
+                    + userHome + "/.cargo/bin:"
+                    + envPath);
 
             Process p = pb.start();
             String result = new String(p.getInputStream().readAllBytes()).trim();
-            boolean ok = p.waitFor(5, java.util.concurrent.TimeUnit.SECONDS) && p.exitValue() == 0;
-            if (ok && !result.isEmpty()) {
+            boolean ok = p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS) && p.exitValue() == 0;
+            if (ok && !result.isEmpty() && new File(result).canExecute()) {
                 api.logging().logToOutput("ToolRegistry: found " + name + " via which: " + result);
                 return result;
             }
@@ -205,7 +224,7 @@ public class ToolRegistry {
             // Not found
         }
 
-        return null; // sentinel stored in ConcurrentHashMap won't work, handle in isInstalled
+        return null;
     }
 
     private static void reg(String name, String desc, ToolInfo.Category cat, String installCmd, boolean required) {
