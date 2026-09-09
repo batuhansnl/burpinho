@@ -34,18 +34,18 @@ public class StatisticsPanel extends JPanel {
     public StatisticsPanel(Counters counters) {
         this.counters = counters;
         setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        setBorder(BorderFactory.createTitledBorder("Statistics"));
+        setBorder(BorderFactory.createTitledBorder("İstatistikler"));
         setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JPanel grid = new JPanel(new GridLayout(2, 4, 28, 4));
-        grid.add(cell("Total Requests:", totalRequests));
-        grid.add(cell("Analyzed:", analyzed));
-        grid.add(cell("Skipped (Duplicate):", skippedDup));
-        grid.add(cell("Skipped (Rate Limit):", skippedRate));
-        grid.add(cell("Skipped (Low Confidence):", skippedLowConf));
-        grid.add(cell("Findings Created:", findingsCreated));
-        grid.add(cell("Cache Hits:", cacheHits));
-        grid.add(cell("Errors:", errors));
+        grid.add(cell("Toplam İstek:", totalRequests));
+        grid.add(cell("Analiz Edilen:", analyzed));
+        grid.add(cell("Atlanan (Mükerrer):", skippedDup));
+        grid.add(cell("Atlanan (Hız Sınırı):", skippedRate));
+        grid.add(cell("Atlanan (Düşük Güven):", skippedLowConf));
+        grid.add(cell("Oluşturulan Bulgular:", findingsCreated));
+        grid.add(cell("Önbellek İsabeti:", cacheHits));
+        grid.add(cell("Hatalar:", errors));
         add(grid);
     }
 

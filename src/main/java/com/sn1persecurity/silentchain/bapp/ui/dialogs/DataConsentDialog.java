@@ -23,20 +23,20 @@ import java.awt.Font;
  */
 public final class DataConsentDialog {
 
-    private static final String TITLE = "burpinho — Data Handling & Privacy Notice";
+    private static final String TITLE = "burpinho — Veri İşleme & Gizlilik Bildirimi";
 
     private static final String BODY =
             "<html><body style='margin:4px;'>" +
-            "<p><b>burpinho is designed for 100% Private, Local AI Vulnerability Analysis.</b></p>" +
+            "<p><b>burpinho, 100% Özel ve Yerel AI Güvenlik Açığı Analizi için tasarlanmıştır.</b></p>" +
 
-            "<p><b>Local AI Providers (OpenAI-Compatible & Ollama):</b> All traffic is sent directly " +
-            "to your local or internal company LLM endpoint (e.g. <code>localhost:8000</code> or corporate internal servers). " +
-            "No data leaves your designated network boundaries.</p>" +
+            "<p><b>Yerel AI Sağlayıcıları (OpenAI Uyumlu & Ollama):</b> Tüm trafik doğrudan yerel " +
+            "veya şirket içi LLM endpoint'inize (örn: <code>localhost:8000</code> veya kurumsal dahili sunucular) gönderilir. " +
+            "Belirlediğiniz ağ sınırları dışına hiçbir veri çıkmaz.</p>" +
 
-            "<p><b>DataSanitizer (Auto-Redaction):</b> Even when scanning locally, burpinho automatically " +
-            "masks sensitive tokens, passwords, cookies, and keys before presenting data to the LLM context.</p>" +
+            "<p><b>DataSanitizer (Otomatik Maskeleme):</b> Yerel tarama yapılsa dahi, burpinho " +
+            "LLM bağlamına veri sunmadan önce hassas token, parola, cookie ve anahtarları otomatik olarak maskeler.</p>" +
 
-            "<p><b>Do you want to enable passive AI vulnerability analysis with burpinho?</b></p>" +
+            "<p><b>burpinho ile pasif AI güvenlik açığı analizini etkinleştirmek istiyor musunuz?</b></p>" +
             "</body></html>";
 
     private DataConsentDialog() {}
@@ -50,7 +50,7 @@ public final class DataConsentDialog {
             return true;
         }
         Component parent = api.userInterface().swingUtils().suiteFrame();
-        Object[] options = {"Acknowledge and enable", "Cancel"};
+        Object[] options = {"Kabul Et ve Etkinleştir", "İptal"};
         int choice = JOptionPane.showOptionDialog(
                 parent, buildMessage(), TITLE,
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,

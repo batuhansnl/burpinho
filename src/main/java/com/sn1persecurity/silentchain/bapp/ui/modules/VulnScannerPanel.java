@@ -32,17 +32,17 @@ public class VulnScannerPanel extends JPanel {
 
     private final JTextField targetField = new JTextField(24);
     private final JComboBox<String> scanModeCombo = new JComboBox<>(new String[]{
-            "Full Vulnerability Scan (Nuclei + CVEs + Exposure + CORS)",
-            "Sensitive Files & API Exposure Only (50+ checks)",
-            "CORS & Security Headers Misconfiguration Only"
+            "Tam Güvenlik Açığı Taraması (Nuclei + CVEs + Exposure + CORS)",
+            "Sadece Hassas Dosyalar & API İfşası (50+ kontrol)",
+            "Sadece CORS & Güvenlik Başlıkları Yapılandırma Hataları"
     });
-    private final JButton startBtn = new JButton("Start Vuln Scan");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JButton clearBtn = new JButton("Clear");
-    private final JButton exportBtn = new JButton("Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("Güvenlik Taramasını Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JButton clearBtn = new JButton("Temizle");
+    private final JButton exportBtn = new JButton("CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Findings: 0 Critical | 0 High | 0 Medium | 0 Low / Info");
+    private final JLabel summaryLabel = new JLabel("Bulgular: 0 Critical | 0 High | 0 Medium | 0 Low / Info");
 
     private final DefaultTableModel findingsModel;
     private final JTable findingsTable;
@@ -61,19 +61,19 @@ public class VulnScannerPanel extends JPanel {
 
         // ---- Top Config Panel ----
         JPanel configPanel = new JPanel(new GridBagLayout());
-        configPanel.setBorder(BorderFactory.createTitledBorder("Vulnerability Scanner Configuration"));
+        configPanel.setBorder(BorderFactory.createTitledBorder("Güvenlik Açığı Tarayıcı Yapılandırması"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(3, 4, 3, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        configPanel.add(new JLabel("Target (URL/Domain):"), gbc);
+        configPanel.add(new JLabel("Hedef (URL/Domain):"), gbc);
         gbc.gridx = 1;
-        targetField.setToolTipText("Enter target domain or URL (e.g. example.com or https://example.com)");
+        targetField.setToolTipText("Hedef domain veya URL girin (örn: example.com veya https://example.com)");
         configPanel.add(targetField, gbc);
 
         gbc.gridx = 2;
-        configPanel.add(new JLabel("Scan Profile:"), gbc);
+        configPanel.add(new JLabel("Tarama Profili:"), gbc);
         gbc.gridx = 3;
         configPanel.add(scanModeCombo, gbc);
 
@@ -108,7 +108,7 @@ public class VulnScannerPanel extends JPanel {
         add(configPanel, BorderLayout.NORTH);
 
         // ---- Center: Findings Table & Live Log ----
-        String[] columnNames = {"#", "Severity", "Finding Type", "Target URL / Endpoint", "Details / Signature"};
+        String[] columnNames = {"#", "Severity", "Bulgu Türü", "Hedef URL / Endpoint", "Detaylar / İmza"};
         findingsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -148,9 +148,9 @@ public class VulnScannerPanel extends JPanel {
 
         // Popup Menu
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem copyUrl = new JMenuItem("Copy Target URL");
+        JMenuItem copyUrl = new JMenuItem("Hedef URL'yi Kopyala");
         copyUrl.addActionListener(e -> copySelectedCell(3));
-        JMenuItem copyFinding = new JMenuItem("Copy Finding Details");
+        JMenuItem copyFinding = new JMenuItem("Bulgu Detaylarını Kopyala");
         copyFinding.addActionListener(e -> copySelectedCell(4));
         popupMenu.add(copyUrl);
         popupMenu.add(copyFinding);
@@ -163,11 +163,11 @@ public class VulnScannerPanel extends JPanel {
         logArea.setForeground(new Color(201, 209, 217));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Discovered Vulnerabilities & Exposures"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Tespit Edilen Güvenlik Açıkları & İfşalar"));
         tablePanel.add(new JScrollPane(findingsTable), BorderLayout.CENTER);
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setBorder(BorderFactory.createTitledBorder("Scanner Live Request & Probe Audit Log"));
+        logPanel.setBorder(BorderFactory.createTitledBorder("Canlı İstek & Tarama Denetim Günlüğü"));
         logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
         JSplitPane centerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, logPanel);
@@ -186,7 +186,7 @@ public class VulnScannerPanel extends JPanel {
     private void onStart() {
         String target = targetField.getText().trim();
         if (target.isEmpty()) {
-            statusLabel.setText("⚠️ Enter a target domain or URL!");
+            statusLabel.setText("⚠️ Bir hedef domain veya URL girin!");
             return;
         }
 
@@ -194,7 +194,7 @@ public class VulnScannerPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Scanning vulnerabilities...");
+        statusLabel.setText("Güvenlik açıkları taranıyor...");
         logArea.setText("");
         findingsModel.setRowCount(0);
 
@@ -217,11 +217,11 @@ public class VulnScannerPanel extends JPanel {
                     logArea.append("\n" + result.toSummary());
                     logArea.setCaretPosition(logArea.getDocument().getLength());
 
-                    statusLabel.setText("✅ Scan complete: " + result.totalFindings() + " total findings");
+                    statusLabel.setText("✅ Tarama tamamlandı: " + result.totalFindings() + " toplam bulgu");
                     scanState.info("burpinho [VULN-SCAN]: Completed — " + result.totalFindings() + " findings");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Hata: " + t.getMessage()));
                 scanState.error("burpinho [VULN-SCAN]: " + t.getMessage());
             } finally {
                 SwingUtilities.invokeLater(() -> {
@@ -259,25 +259,25 @@ public class VulnScannerPanel extends JPanel {
             findingsModel.addRow(new Object[]{i++, sev, "Configuration / Header", result.target(), f});
         }
 
-        summaryLabel.setText("Findings: " + crit + " Critical | " + high + " High | " + med + " Medium | " + low + " Low/Info");
+        summaryLabel.setText("Bulgular: " + crit + " Critical | " + high + " High | " + med + " Medium | " + low + " Low/Info");
     }
 
     private void onCancel() {
         scannerModule.cancel();
-        statusLabel.setText("Cancelling scan...");
+        statusLabel.setText("Tarama iptal ediliyor...");
         scanState.info("burpinho [VULN-SCAN]: Scan cancelled by user");
     }
 
     private void onClear() {
         findingsModel.setRowCount(0);
         logArea.setText("");
-        statusLabel.setText("Ready");
-        summaryLabel.setText("Findings: 0 Critical | 0 High | 0 Medium | 0 Low / Info");
+        statusLabel.setText("Hazır");
+        summaryLabel.setText("Bulgular: 0 Critical | 0 High | 0 Medium | 0 Low / Info");
     }
 
     private void onExportCsv() {
         if (findingsModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No findings to export!", "Export CSV", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak bulgu yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -296,9 +296,9 @@ public class VulnScannerPanel extends JPanel {
                     }
                     fw.write(row.toString() + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported successfully to " + f.getAbsolutePath(), "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

@@ -112,7 +112,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
 
         // ---- Build tabbed pane ----
         moduleTabs = new JTabbedPane();
-        moduleTabs.addTab("Passive AI", passivePanel);
+        moduleTabs.addTab("Pasif AI", passivePanel);
 
         add(moduleTabs, BorderLayout.CENTER);
 
@@ -145,15 +145,15 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         this.reportPanel = report;
         this.jwtPanel = jwt;
 
-        moduleTabs.addTab("Recon (Subdomain & IP)", recon);
-        moduleTabs.addTab("IP & Network Scanner", ipScan);
-        moduleTabs.addTab("Vulnerability Scanner", vulnScanner);
-        moduleTabs.addTab("XSS Analyzer", xss);
-        moduleTabs.addTab("SQLi Analyzer", sqli);
+        moduleTabs.addTab("Keşif (Subdomain & IP)", recon);
+        moduleTabs.addTab("IP & Ağ Tarayıcısı", ipScan);
+        moduleTabs.addTab("Güvenlik Açığı Tarayıcısı", vulnScanner);
+        moduleTabs.addTab("XSS Analizörü", xss);
+        moduleTabs.addTab("SQLi Analizörü", sqli);
         moduleTabs.addTab("Path Fuzzer", fuzzer);
         moduleTabs.addTab("Exploit & PoC", exploit);
-        moduleTabs.addTab("Report Generator", report);
-        moduleTabs.addTab("JWT Attack", jwt);
+        moduleTabs.addTab("Rapor Oluşturucu", report);
+        moduleTabs.addTab("JWT Saldırısı", jwt);
     }
 
     public ReconPanel getReconPanel()               { return reconPanel; }
@@ -213,17 +213,17 @@ public class MainTab extends JPanel implements ControlBar.Actions {
         if (!settings.passiveEnabled()) {
             // Turning ON: check consent
             if (!DataConsentDialog.ensureConsent(api, persistence)) {
-                scanState.info("Passive scanning cancelled (consent required).");
+                scanState.info("Pasif tarama iptal edildi (onay gerekli).");
                 return;
             }
             settings.setPassiveEnabled(true);
             persistence.save(settings);
-            scanState.info("Passive scanning ENABLED.");
+            scanState.info("Pasif tarama ETKİNLEŞTİRİLDİ.");
         } else {
             // Turning OFF
             settings.setPassiveEnabled(false);
             persistence.save(settings);
-            scanState.info("Passive scanning DISABLED.");
+            scanState.info("Pasif tarama DEVRE DIŞI BIRAKILDI.");
         }
         refreshNow();
     }
@@ -237,7 +237,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     @Override
     public void onCancelAll() {
         int count = taskRegistry.cancelAll();
-        scanState.info("Cancelled " + count + " active task(s).");
+        scanState.info(count + " aktif görev iptal edildi.");
         refreshNow();
     }
 
@@ -245,7 +245,7 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     public void onTogglePause() {
         boolean next = !scanState.isPaused();
         scanState.setPaused(next);
-        scanState.info("Scanning " + (next ? "PAUSED" : "RESUMED") + ".");
+        scanState.info("Tarama " + (next ? "DURAKLATILDI" : "DEVAM ETTİRİLDİ") + ".");
         refreshNow();
     }
 
@@ -253,17 +253,17 @@ public class MainTab extends JPanel implements ControlBar.Actions {
     public void onExportCsv() {
         String path = CsvExporter.export(this, findingsRegistry);
         if (path != null) {
-            scanState.info("Exported findings to " + path);
+            scanState.info("Bulgular CSV olarak aktarıldı: " + path);
         }
     }
 
     @Override
     public void onToolStatus() {
         JOptionPane.showMessageDialog(this,
-                "burpinho v4.0.0 — 100% Self-Contained Pure Java Architecture.\n\n" +
-                "All core engines (Recon, IP/CIDR Scanner, Vulnerability Scanner, XSS,\n" +
-                "SQLi, Path Fuzzer, JWT Attack, and Reports) are natively built-in.\n" +
-                "No external Go, Python, or CLI installations required for full operation.",
-                "Tool Status", JOptionPane.INFORMATION_MESSAGE);
+                "burpinho v4.0.0 — %100 Bağımsız Saf Java Mimarisi.\n\n" +
+                "Tüm temel motorlar (Keşif, IP/CIDR Tarayıcı, Güvenlik Açığı Tarayıcısı, XSS,\n" +
+                "SQLi, Path Fuzzer, JWT Saldırısı ve Raporlar) dahili olarak yerleşiktir.\n" +
+                "Kullanım için harici Go, Python veya CLI kurulumu gerektirmez.",
+                "Araç Durumu", JOptionPane.INFORMATION_MESSAGE);
     }
 }

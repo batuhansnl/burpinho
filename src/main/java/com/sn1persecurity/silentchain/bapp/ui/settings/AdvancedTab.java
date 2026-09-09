@@ -31,13 +31,13 @@ public class AdvancedTab extends JPanel {
     private final ScanState scanState;
     private final TaskRegistry taskRegistry;
 
-    private final JCheckBox passiveScanning = new JCheckBox("Enable automatic passive scanning");
-    private final JComboBox<String> consoleTheme = new JComboBox<>(new String[]{"Light", "Dark"});
-    private final JCheckBox verboseLogging = new JCheckBox("Verbose logging");
+    private final JCheckBox passiveScanning = new JCheckBox("Otomatik pasif taramayı etkinleştir");
+    private final JComboBox<String> consoleTheme = new JComboBox<>(new String[]{"Açık (Light)", "Koyu (Dark)"});
+    private final JCheckBox verboseLogging = new JCheckBox("Ayrıntılı günlük kaydı (Verbose)");
     private final JTextField requestTimeout = new JTextField(8);
 
-    private final JCheckBox sanitizer = new JCheckBox("Redact secrets / PII before sending to AI");
-    private final JCheckBox inScopeOnly = new JCheckBox("Restrict to in-scope targets only");
+    private final JCheckBox sanitizer = new JCheckBox("AI'ya göndermeden önce secret / PII verilerini maskele");
+    private final JCheckBox inScopeOnly = new JCheckBox("Sadece hedef kapsamındaki (in-scope) isteklerle sınırla");
     private final JTextField maxResponseKb = new JTextField(8);
     private final JTextField hostRpm = new JTextField(8);
     private final JTextField dedupMinutes = new JTextField(8);
@@ -50,21 +50,21 @@ public class AdvancedTab extends JPanel {
         setLayout(new GridBagLayout());
 
         int row = 0;
-        addRow(row++, "Passive Scanning:", passiveScanning);
-        addRow(row++, "Console Theme:", consoleTheme);
-        addRow(row++, "Verbose Logging:", verboseLogging);
-        addRow(row++, "AI Request Timeout (s):", requestTimeout);
+        addRow(row++, "Pasif Tarama:", passiveScanning);
+        addRow(row++, "Konsol Teması:", consoleTheme);
+        addRow(row++, "Ayrıntılı Loglama:", verboseLogging);
+        addRow(row++, "AI İstek Zaman Aşımı (sn):", requestTimeout);
 
-        JButton diagBtn = new JButton("Run Task Diagnostics");
+        JButton diagBtn = new JButton("Görev Tanılamasını Çalıştır");
         diagBtn.addActionListener(e -> scanState.info(TaskDiagnosticsReport.generate(taskRegistry)));
         addRow(row++, "", diagBtn);
 
-        addSection(row++, "Safety Rails (SILENTCHAIN Community Edition)");
+        addSection(row++, "Güvenlik Rayları & Sınırlar (Safety Rails)");
         addRow(row++, "Sanitizer:", sanitizer);
-        addRow(row++, "Scope:", inScopeOnly);
-        addRow(row++, "Max Response Size (KB):", maxResponseKb);
-        addRow(row++, "Per-host Requests/Minute:", hostRpm);
-        addRow(row++, "URL Dedup Window (min):", dedupMinutes);
+        addRow(row++, "Scope (Kapsam):", inScopeOnly);
+        addRow(row++, "Maksimum Yanıt Boyutu (KB):", maxResponseKb);
+        addRow(row++, "Host Başına İstek/Dakika:", hostRpm);
+        addRow(row++, "URL Tekilleştirme Süresi (dk):", dedupMinutes);
 
         addUpgradeNotice(row++);
     }
@@ -73,7 +73,7 @@ public class AdvancedTab extends JPanel {
 
     public void load() {
         passiveScanning.setSelected(settings.passiveEnabled());
-        consoleTheme.setSelectedItem(settings.theme() == Settings.ThemeChoice.DARK ? "Dark" : "Light");
+        consoleTheme.setSelectedItem(settings.theme() == Settings.ThemeChoice.DARK ? "Koyu (Dark)" : "Açık (Light)");
         verboseLogging.setSelected(settings.verbose());
         requestTimeout.setText(Integer.toString(settings.requestTimeoutSeconds()));
 
@@ -86,7 +86,8 @@ public class AdvancedTab extends JPanel {
 
     public void store() {
         settings.setPassiveEnabled(passiveScanning.isSelected());
-        settings.setTheme("Dark".equals(consoleTheme.getSelectedItem())
+        String selectedTheme = String.valueOf(consoleTheme.getSelectedItem());
+        settings.setTheme(selectedTheme.contains("Dark") || selectedTheme.contains("Koyu")
                 ? Settings.ThemeChoice.DARK : Settings.ThemeChoice.LIGHT);
         settings.setVerbose(verboseLogging.isSelected());
         settings.setRequestTimeoutSeconds(parseInt(requestTimeout.getText(), settings.requestTimeoutSeconds()));
@@ -150,13 +151,13 @@ public class AdvancedTab extends JPanel {
 
     private void addUpgradeNotice(int row) {
         JTextArea notice = new JTextArea(
-                "COMMUNITY-TIER (free) — Passive Analysis Only\n" +
-                "SILENTCHAIN Pro adds: active verification, advanced payload libraries,\n" +
-                "WAF detection & evasion, out-of-band (OOB) testing, and priority support.\n" +
-                "Visit https://silentchain.ai for more information.");
+                "⚡ burpinho v4.0.0 — Çok Modüllü Güvenlik Paketi\n" +
+                "Tüm modüller (Pasif AI, Keşif, IP Tarayıcı, Güvenlik Açığı Tarayıcısı,\n" +
+                "XSS, SQLi, Fuzzer, Exploit & PoC, Raporlayıcı ve Gelişmiş JWT Saldırı Motoru)\n" +
+                "yerel ve 100% bağımsız olarak çalışmaktadır.");
         notice.setEditable(false);
         notice.setOpaque(false);
-        notice.setBorder(BorderFactory.createTitledBorder("Upgrade"));
+        notice.setBorder(BorderFactory.createTitledBorder("Bilgi"));
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0; c.gridy = row; c.gridwidth = 2;

@@ -31,9 +31,9 @@ public class ReportPanel extends JPanel {
     private final Supplier<IpScanResult> ipScanSupplier;
 
     private final JTextField outputDirField;
-    private final JButton generateBtn = new JButton("Generate HTML Report");
-    private final JButton browseBtn = new JButton("Browse...");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton generateBtn = new JButton("HTML Raporu Oluştur");
+    private final JButton browseBtn = new JButton("Gözat...");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JTextArea previewArea;
 
     public ReportPanel(MontoyaApi api, ReportModule reportModule, ThreadPool threadPool,
@@ -55,7 +55,7 @@ public class ReportPanel extends JPanel {
         // ---- Top: Controls ----
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
 
-        topPanel.add(new JLabel("Output Directory:"));
+        topPanel.add(new JLabel("Çıktı Dizini:"));
         String defaultDir = System.getProperty("user.home") + File.separator + "burpinho-reports";
         outputDirField = new JTextField(defaultDir, 28);
         topPanel.add(outputDirField);
@@ -82,14 +82,14 @@ public class ReportPanel extends JPanel {
         previewArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         previewArea.setBackground(new Color(22, 27, 34));
         previewArea.setForeground(new Color(201, 209, 217));
-        previewArea.setText("⚡ burpinho Unified Security Audit Report Generator\n\n" +
-                "Click 'Generate HTML Report' to create an executive security report from all modules:\n\n" +
-                "  • AI Passive Analysis Findings (Real-time traffic inspector)\n" +
-                "  • Subdomain & DNS Recon (Resolved IPs, Open Ports, HTTP status)\n" +
-                "  • IP & CIDR Network Scan Results (PTR Hostnames, Services, Latencies)\n" +
-                "  • Vulnerability Scan Findings (Nuclei CVEs, Sensitive Paths, CORS & Headers)\n" +
-                "  • XSS & SQLi Active Probe Results\n" +
-                "  • Executive Summary (AI-generated risk summary and remediation roadmap)\n");
+        previewArea.setText("⚡ burpinho Birleşik Güvenlik Denetim Raporu Oluşturucu\n\n" +
+                "Tüm modüllerden toplanan bulgularla yönetici güvenlik raporu oluşturmak için 'HTML Raporu Oluştur' butonuna tıklayın:\n\n" +
+                "  • AI Pasif Analiz Bulguları (Gerçek zamanlı trafik denetleyicisi)\n" +
+                "  • Subdomain & DNS Keşfi (Çözümlenen IP'ler, Açık Portlar, HTTP durumları)\n" +
+                "  • IP & CIDR Ağ Tarama Sonuçları (PTR Hostname'leri, Servisler, Gecikmeler)\n" +
+                "  • Güvenlik Açığı Tarama Bulguları (Nuclei CVE'leri, Hassas Yollar, CORS & Başlıklar)\n" +
+                "  • XSS & SQLi Aktif Test Sonuçları\n" +
+                "  • Yönetici Özeti (AI tarafından oluşturulan risk özeti ve iyileştirme yol haritası)\n");
 
         add(new JScrollPane(previewArea), BorderLayout.CENTER);
     }
@@ -104,7 +104,7 @@ public class ReportPanel extends JPanel {
 
     private void onGenerate() {
         generateBtn.setEnabled(false);
-        statusLabel.setText("Generating report...");
+        statusLabel.setText("Rapor oluşturuluyor...");
         previewArea.setText("");
 
         ReconResult recon = reconSupplier.get();
@@ -125,8 +125,8 @@ public class ReportPanel extends JPanel {
 
                 SwingUtilities.invokeLater(() -> {
                     if (path != null) {
-                        statusLabel.setText("✅ Report saved!");
-                        previewArea.append("\n✅ Report successfully saved to: " + path + "\n");
+                        statusLabel.setText("✅ Rapor kaydedildi!");
+                        previewArea.append("\n✅ Rapor başarıyla kaydedildi: " + path + "\n");
                         scanState.info("burpinho [REPORT]: Saved to " + path);
 
                         // Auto-open in system browser
@@ -136,13 +136,13 @@ public class ReportPanel extends JPanel {
                             }
                         } catch (Throwable ignored) {}
                     } else {
-                        statusLabel.setText("❌ Report generation failed!");
+                        statusLabel.setText("❌ Rapor oluşturulamadı!");
                     }
                 });
             } catch (Throwable t) {
                 SwingUtilities.invokeLater(() -> {
-                    statusLabel.setText("❌ Error: " + t.getMessage());
-                    previewArea.append("Error: " + t.getMessage() + "\n");
+                    statusLabel.setText("❌ Hata: " + t.getMessage());
+                    previewArea.append("Hata: " + t.getMessage() + "\n");
                 });
             } finally {
                 SwingUtilities.invokeLater(() -> generateBtn.setEnabled(true));

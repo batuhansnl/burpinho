@@ -65,35 +65,35 @@ public class JwtPanel extends JPanel {
     // Attack selection checkboxes
     private final JCheckBox chkAlgNone = new JCheckBox("alg:none Bypass", true);
     private final JCheckBox chkBruteForce = new JCheckBox("HMAC Brute-Force", true);
-    private final JCheckBox chkRsHs = new JCheckBox("RS→HS Confusion", true);
-    private final JCheckBox chkKidInject = new JCheckBox("kid Injection", true);
-    private final JCheckBox chkJkuX5u = new JCheckBox("jku/x5u Spoofing", true);
-    private final JCheckBox chkJwkInject = new JCheckBox("jwk Self-Sign", true);
-    private final JCheckBox chkClaimTamper = new JCheckBox("Claim Tampering", true);
-    private final JCheckBox chkExpiry = new JCheckBox("Expiry Manipulation", true);
-    private final JCheckBox chkNullSig = new JCheckBox("Null Signature", true);
-    private final JCheckBox chkCrossService = new JCheckBox("Cross-Service Relay", true);
-    private final JCheckBox chkNestedJwt = new JCheckBox("Nested JWT Analysis", true);
+    private final JCheckBox chkRsHs = new JCheckBox("RS→HS Karışıklığı (Confusion)", true);
+    private final JCheckBox chkKidInject = new JCheckBox("kid Enjeksiyonu", true);
+    private final JCheckBox chkJkuX5u = new JCheckBox("jku/x5u Sahteciliği (Spoofing)", true);
+    private final JCheckBox chkJwkInject = new JCheckBox("jwk Kendi Kendine İmzalama (Self-Sign)", true);
+    private final JCheckBox chkClaimTamper = new JCheckBox("Claim Değiştirme (Tampering)", true);
+    private final JCheckBox chkExpiry = new JCheckBox("Süre Değiştirme (Expiry)", true);
+    private final JCheckBox chkNullSig = new JCheckBox("Null İmza (Null Signature)", true);
+    private final JCheckBox chkCrossService = new JCheckBox("Servisler Arası İletim (Relay)", true);
+    private final JCheckBox chkNestedJwt = new JCheckBox("İç İçe JWT Analizi (Nested)", true);
 
     // Brute-force config
     private final JComboBox<String> wordlistCombo = new JComboBox<>(new String[]{
-            "Built-in Top 500 Secrets",
-            "Built-in + Custom File",
-            "Custom File Only"
+            "Dahili En Çok Kullanılan 500 Secret",
+            "Dahili + Özel Dosya",
+            "Sadece Özel Dosya"
     });
     private final JTextField customWordlistPath = new JTextField(20);
-    private final JButton browseBtn = new JButton("Browse...");
+    private final JButton browseBtn = new JButton("Gözat...");
     private final JSpinner threadsSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 100, 5));
 
     // Action buttons
-    private final JButton decodeBtn = new JButton("🔍 Decode Token");
-    private final JButton attackBtn = new JButton("🚀 Launch Attack");
-    private final JButton cancelBtn = new JButton("⏹ Cancel");
-    private final JButton clearBtn = new JButton("🗑 Clear All");
-    private final JButton exportBtn = new JButton("📤 Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready — Paste a JWT token to begin");
+    private final JButton decodeBtn = new JButton("🔍 Token'ı Çöz (Decode)");
+    private final JButton attackBtn = new JButton("🚀 Saldırıyı Başlat");
+    private final JButton cancelBtn = new JButton("⏹ İptal Et");
+    private final JButton clearBtn = new JButton("🗑 Hepsini Temizle");
+    private final JButton exportBtn = new JButton("📤 CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır — Başlamak için bir JWT token'ı yapıştırın");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Attacks: 0 | Findings: 0 | BF Keys Tested: 0");
+    private final JLabel summaryLabel = new JLabel("Saldırılar: 0 | Bulgular: 0 | Denenen BF Anahtarları: 0");
 
     // Results table
     private final DefaultTableModel resultsModel;
@@ -118,7 +118,7 @@ public class JwtPanel extends JPanel {
         JPanel topSection = new JPanel(new BorderLayout(6, 4));
         topSection.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(88, 166, 255), 1),
-                "🔐 JWT Token Input & Decode",
+                "🔐 JWT Token Girişi & Çözümleme (Decode)",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
                 new Font(Font.SANS_SERIF, Font.BOLD, 12),
@@ -126,7 +126,7 @@ public class JwtPanel extends JPanel {
 
         // Input row
         JPanel inputRow = new JPanel(new BorderLayout(6, 0));
-        tokenInputArea.setToolTipText("Paste a JWT token (e.g., eyJhbGciOi...) or an HTTP request containing a Bearer token");
+        tokenInputArea.setToolTipText("Bir JWT token'ı (örn: eyJhbGciOi...) veya Bearer token içeren bir HTTP isteği yapıştırın");
         tokenInputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         tokenInputArea.setLineWrap(true);
         tokenInputArea.setWrapStyleWord(true);
@@ -141,14 +141,14 @@ public class JwtPanel extends JPanel {
         decodeBtn.addActionListener(e -> onDecode());
         inputBtns.add(decodeBtn);
 
-        JButton pasteBtn = new JButton("📋 Paste");
+        JButton pasteBtn = new JButton("📋 Yapıştır");
         pasteBtn.addActionListener(e -> {
             try {
                 String clipboard = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(java.awt.datatransfer.DataFlavor.stringFlavor);
                 tokenInputArea.setText(clipboard);
                 onDecode();
             } catch (Exception ex) {
-                statusLabel.setText("⚠️ Clipboard empty or inaccessible");
+                statusLabel.setText("⚠️ Pano boş veya erişilemiyor");
             }
         });
         inputBtns.add(pasteBtn);
@@ -176,7 +176,7 @@ public class JwtPanel extends JPanel {
         signatureInfoArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
         signatureInfoArea.setBackground(new Color(22, 27, 34));
         signatureInfoArea.setForeground(new Color(255, 166, 87));
-        JPanel sigPanel = wrapWithTitle("Signature & Info", signatureInfoArea, new Color(255, 166, 87));
+        JPanel sigPanel = wrapWithTitle("İmza & Bilgi (Signature & Info)", signatureInfoArea, new Color(255, 166, 87));
         decodePanels.add(sigPanel);
 
         topSection.add(decodePanels, BorderLayout.CENTER);
@@ -185,7 +185,7 @@ public class JwtPanel extends JPanel {
         JPanel configSection = new JPanel(new BorderLayout(6, 4));
         configSection.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(248, 81, 73), 1),
-                "⚔️ Attack Configuration",
+                "⚔️ Saldırı Yapılandırması",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
                 new Font(Font.SANS_SERIF, Font.BOLD, 12),
@@ -205,9 +205,9 @@ public class JwtPanel extends JPanel {
         attackGrid.add(chkCrossService);
         attackGrid.add(chkNestedJwt);
 
-        JButton selectAllBtn = new JButton("Select All");
+        JButton selectAllBtn = new JButton("Tümünü Seç");
         selectAllBtn.addActionListener(e -> setAllAttacks(true));
-        JButton deselectAllBtn = new JButton("Deselect All");
+        JButton deselectAllBtn = new JButton("Tümünü Kaldır");
         deselectAllBtn.addActionListener(e -> setAllAttacks(false));
         JPanel selBtns = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         selBtns.add(selectAllBtn);
@@ -275,7 +275,7 @@ public class JwtPanel extends JPanel {
         add(topCombined, BorderLayout.NORTH);
 
         // ========== SECTION 3: Results Table ==========
-        String[] columnNames = {"#", "Severity", "Attack Type", "Modified Token", "Status", "Details"};
+        String[] columnNames = {"#", "Severity", "Saldırı Türü", "Değiştirilmiş Token", "Durum", "Detaylar"};
         resultsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -335,20 +335,20 @@ public class JwtPanel extends JPanel {
         // Context menu on results table
         JPopupMenu popup = new JPopupMenu();
 
-        JMenuItem sendToRepeater = new JMenuItem("🔁 Send to Burp Repeater");
+        JMenuItem sendToRepeater = new JMenuItem("🔁 Burp Repeater'a Gönder");
         sendToRepeater.setFont(sendToRepeater.getFont().deriveFont(Font.BOLD));
         sendToRepeater.addActionListener(e -> onSendToRepeater());
 
-        JMenuItem inspectItem = new JMenuItem("🔍 Inspect / Decode in Panels");
+        JMenuItem inspectItem = new JMenuItem("🔍 Panellerde İncele / Çözümle");
         inspectItem.addActionListener(e -> onInspectSelectedResult());
 
-        JMenuItem copyToken = new JMenuItem("📋 Copy Full Modified Token");
+        JMenuItem copyToken = new JMenuItem("📋 Tam Değiştirilmiş Token'ı Kopyala");
         copyToken.addActionListener(e -> onCopyFullToken());
 
-        JMenuItem copyDetails = new JMenuItem("📋 Copy Attack Details");
+        JMenuItem copyDetails = new JMenuItem("📋 Saldırı Detaylarını Kopyala");
         copyDetails.addActionListener(e -> copyCell(5));
 
-        JMenuItem copyCurl = new JMenuItem("💻 Copy as cURL Command");
+        JMenuItem copyCurl = new JMenuItem("💻 cURL Komutu Olarak Kopyala");
         copyCurl.addActionListener(e -> onCopyCurl());
 
         popup.add(sendToRepeater);
@@ -372,7 +372,7 @@ public class JwtPanel extends JPanel {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(255, 200, 55), 1),
-                "🎯 Attack Results",
+                "🎯 Saldırı Sonuçları",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
                 new Font(Font.SANS_SERIF, Font.BOLD, 12),
@@ -389,7 +389,7 @@ public class JwtPanel extends JPanel {
         JPanel logPanel = new JPanel(new BorderLayout());
         logPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(139, 148, 158), 1),
-                "📜 Live Attack Audit Log",
+                "📜 Canlı Saldırı Denetim Günlüğü",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
                 new Font(Font.SANS_SERIF, Font.BOLD, 12),
@@ -417,7 +417,7 @@ public class JwtPanel extends JPanel {
     private void onDecode() {
         String raw = tokenInputArea.getText().trim();
         if (raw.isEmpty()) {
-            statusLabel.setText("⚠️ Paste a JWT token first!");
+            statusLabel.setText("⚠️ Önce bir JWT token'ı yapıştırın!");
             return;
         }
 
@@ -428,7 +428,7 @@ public class JwtPanel extends JPanel {
             if (JwtToken.isJwt(raw)) {
                 extracted = raw;
             } else {
-                statusLabel.setText("❌ No valid JWT found in input.");
+                statusLabel.setText("❌ Girdide geçerli bir JWT bulunamadı.");
                 return;
             }
         }
@@ -448,17 +448,17 @@ public class JwtPanel extends JPanel {
             }
             signatureInfoArea.setText(sigInfo.toString());
 
-            statusLabel.setText("✅ JWT decoded successfully — " + currentToken.algorithm() + " | " +
-                    (currentToken.isExpired() ? "⚠️ EXPIRED" : "Valid"));
+            statusLabel.setText("✅ JWT başarıyla çözümlendi — " + currentToken.algorithm() + " | " +
+                    (currentToken.isExpired() ? "⚠️ SÜRESİ DOLMUŞ (EXPIRED)" : "Geçerli"));
 
-            log("[JWT-DECODE] Token parsed: alg=" + currentToken.algorithm() +
+            log("[JWT-DECODE] Token ayrıştırıldı: alg=" + currentToken.algorithm() +
                     ", sub=" + currentToken.subject() +
                     ", exp=" + (currentToken.expiration() > 0 ? new java.util.Date(currentToken.expiration() * 1000L) : "N/A") +
                     ", expired=" + currentToken.isExpired());
 
         } catch (Exception e) {
-            statusLabel.setText("❌ Parse error: " + e.getMessage());
-            log("[JWT-DECODE] ❌ Failed to parse: " + e.getMessage());
+            statusLabel.setText("❌ Ayrıştırma hatası: " + e.getMessage());
+            log("[JWT-DECODE] ❌ Ayrıştırma başarısız: " + e.getMessage());
             currentToken = null;
         }
     }
@@ -467,7 +467,7 @@ public class JwtPanel extends JPanel {
         if (currentToken == null) {
             onDecode();
             if (currentToken == null) {
-                statusLabel.setText("⚠️ Decode a valid JWT first!");
+                statusLabel.setText("⚠️ Önce geçerli bir JWT çözümleyin!");
                 return;
             }
         }
@@ -477,7 +477,7 @@ public class JwtPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("⚔️ Launching JWT attacks...");
+        statusLabel.setText("⚔️ JWT saldırıları başlatılıyor...");
         resultsModel.setRowCount(0);
         attackResultsList.clear();
 
@@ -487,7 +487,7 @@ public class JwtPanel extends JPanel {
             try {
                 runAttacks();
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Attack error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Saldırı hatası: " + t.getMessage()));
                 log("[JWT-ATTACK] ❌ Fatal error: " + t.getMessage());
             } finally {
                 SwingUtilities.invokeLater(() -> {
@@ -548,7 +548,7 @@ public class JwtPanel extends JPanel {
         int bfKeysCount = 0;
         if (config.hmacBruteForce && !cancelled && currentToken.algorithm().startsWith("HS")) {
             log("[JWT-BRUTE] ═══════════════════════════════════════════════");
-            log("[JWT-BRUTE] Starting HMAC Secret Brute-Force...");
+            log("[JWT-BRUTE] HMAC Secret Brute-Force başlatılıyor...");
             log("[JWT-BRUTE] ═══════════════════════════════════════════════");
 
             int threads = (int) threadsSpinner.getValue();
@@ -560,7 +560,7 @@ public class JwtPanel extends JPanel {
                     progressBar.setIndeterminate(false);
                     progressBar.setMaximum(progress.total());
                     progressBar.setValue(progress.current());
-                    statusLabel.setText(String.format("🔑 BF: %,d/%,d (%.0f keys/sec)",
+                    statusLabel.setText(String.format("🔑 BF: %,d/%,d (%.0f anahtar/sn)",
                             progress.current(), progress.total(), progress.keysPerSec()));
                 });
             });
@@ -574,7 +574,7 @@ public class JwtPanel extends JPanel {
                 String filePath = customWordlistPath.getText().trim();
                 File wordlistFile = filePath.isEmpty() ? null : new File(filePath);
                 if (wordlistIdx == 2 && (wordlistFile == null || !wordlistFile.exists())) {
-                    log("[JWT-BRUTE] ⚠️ Custom wordlist file not found, falling back to built-in.");
+                    log("[JWT-BRUTE] ⚠️ Özel wordlist dosyası bulunamadı, dahili listeye geçiliyor.");
                     bfResult = bruteForcer.bruteForceBuiltIn(threads);
                 } else {
                     bfResult = bruteForcer.bruteForceFromFile(wordlistFile, threads);
@@ -595,7 +595,7 @@ public class JwtPanel extends JPanel {
                         "HMAC BF (secret=\"" + crackedSecret + "\")",
                         resignedToken,
                         "🔥 CRACKED",
-                        "Secret cracked: \"" + crackedSecret + "\" — " + bfResult.summary()
+                        "Secret kırıldı: \"" + crackedSecret + "\" — " + bfResult.summary()
                 );
                 attackResultsList.add(item);
 
@@ -605,7 +605,7 @@ public class JwtPanel extends JPanel {
                             "HMAC BF (secret=\"" + crackedSecret + "\")",
                             resignedToken.length() > 60 ? resignedToken.substring(0, 60) + "..." : resignedToken,
                             "🔥 CRACKED",
-                            "Secret cracked: \"" + crackedSecret + "\" — " + bfResult.summary()
+                            "Secret kırıldı: \"" + crackedSecret + "\" — " + bfResult.summary()
                     });
                 });
             } else {
@@ -637,8 +637,8 @@ public class JwtPanel extends JPanel {
         final int ac = attackCount;
         final int bfk = bfKeysCount;
         SwingUtilities.invokeLater(() -> {
-            statusLabel.setText("✅ JWT attack suite completed — " + fc + " critical/high findings. Right-click any row to Send to Repeater.");
-            summaryLabel.setText("Attacks: " + ac + " | Critical/High: " + fc + " | BF Keys Tested: " + bfk);
+            statusLabel.setText("✅ JWT saldırı paketi tamamlandı — " + fc + " critical/high bulgu. Repeater'a göndermek için bir satıra sağ tıklayın.");
+            summaryLabel.setText("Saldırılar: " + ac + " | Critical/High: " + fc + " | Denenen BF Anahtarları: " + bfk);
             scanState.info("burpinho [JWT]: Attack suite complete — " + ac + " results, " + fc + " critical/high.");
         });
     }
@@ -648,7 +648,7 @@ public class JwtPanel extends JPanel {
         if (activeBruteForcer != null) {
             activeBruteForcer.cancel();
         }
-        statusLabel.setText("⏹ Attack cancelled.");
+        statusLabel.setText("⏹ Saldırı iptal edildi.");
         scanState.info("burpinho [JWT]: Attack cancelled by user.");
     }
 
@@ -663,13 +663,13 @@ public class JwtPanel extends JPanel {
         signatureInfoArea.setText("");
         tokenInputArea.setText("");
         currentToken = null;
-        statusLabel.setText("Ready — Paste a JWT token to begin");
-        summaryLabel.setText("Attacks: 0 | Findings: 0 | BF Keys Tested: 0");
+        statusLabel.setText("Hazır — Başlamak için bir JWT token'ı yapıştırın");
+        summaryLabel.setText("Saldırılar: 0 | Bulgular: 0 | Denenen BF Anahtarları: 0");
     }
 
     private void onBrowseWordlist() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select JWT Secret Wordlist File");
+        chooser.setDialogTitle("JWT Secret Wordlist Dosyası Seçin");
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             customWordlistPath.setText(chooser.getSelectedFile().getAbsolutePath());
         }
@@ -677,7 +677,7 @@ public class JwtPanel extends JPanel {
 
     private void onExportCsv() {
         if (resultsModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No JWT attack results to export!", "Export", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak JWT saldırı sonucu yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -696,9 +696,9 @@ public class JwtPanel extends JPanel {
                     }
                     fw.write(row + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported to " + f.getAbsolutePath(), "Export", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -713,7 +713,7 @@ public class JwtPanel extends JPanel {
     private void onSendToRepeater() {
         int selectedRow = resultsTable.getSelectedRow();
         if (selectedRow < 0) {
-            statusLabel.setText("⚠️ Please select an attack result row first.");
+            statusLabel.setText("⚠️ Lütfen önce bir saldırı sonuç satırı seçin.");
             return;
         }
 
@@ -726,7 +726,7 @@ public class JwtPanel extends JPanel {
         }
 
         if (item == null || item.fullModifiedToken() == null || item.fullModifiedToken().isEmpty() || "N/A".equals(item.fullModifiedToken())) {
-            statusLabel.setText("⚠️ Selected row has no attack token payload.");
+            statusLabel.setText("⚠️ Seçilen satırda saldırı payload token'ı bulunmuyor.");
             return;
         }
 
@@ -791,17 +791,17 @@ public class JwtPanel extends JPanel {
 
             if (api != null && api.repeater() != null && requestToSend != null) {
                 api.repeater().sendToRepeater(requestToSend, tabTitle);
-                statusLabel.setText("🔁 Sent [" + attackName + "] to Burp Repeater tab: '" + tabTitle + "'");
-                log("[JWT-REPEATER] 🔁 Successfully sent attack request to Burp Repeater tab: " + tabTitle +
+                statusLabel.setText("🔁 [" + attackName + "] Burp Repeater sekmesine gönderildi: '" + tabTitle + "'");
+                log("[JWT-REPEATER] 🔁 Başarıyla Burp Repeater sekmesine gönderildi: " + tabTitle +
                         " | Payload: " + (token.length() > 60 ? token.substring(0, 60) + "..." : token));
                 scanState.info("burpinho [JWT]: Sent attack payload '" + attackName + "' to Burp Repeater.");
             } else {
                 copyToClipboard(token);
-                statusLabel.setText("⚠️ Repeater API unavailable — copied token to clipboard instead.");
+                statusLabel.setText("⚠️ Repeater API kullanılamıyor — token panoya kopyalandı.");
             }
         } catch (Exception ex) {
-            log("[JWT-REPEATER] ❌ Failed to send to Repeater: " + ex.getMessage());
-            statusLabel.setText("❌ Error sending to Repeater: " + ex.getMessage());
+            log("[JWT-REPEATER] ❌ Repeater'a gönderilemedi: " + ex.getMessage());
+            statusLabel.setText("❌ Repeater'a gönderirken hata: " + ex.getMessage());
         }
     }
 
@@ -831,22 +831,22 @@ public class JwtPanel extends JPanel {
             payloadArea.setText(parsed.payloadJson());
 
             StringBuilder sigInfo = new StringBuilder();
-            sigInfo.append("=== INSPECTING ATTACK PAYLOAD ===\n");
-            sigInfo.append("Attack: ").append(item.attackName()).append("\n");
+            sigInfo.append("=== SALDIRI PAYLOAD'I İNCELENİYOR ===\n");
+            sigInfo.append("Saldırı: ").append(item.attackName()).append("\n");
             sigInfo.append("Severity: ").append(item.severity()).append("\n");
-            sigInfo.append("Status: ").append(item.status()).append("\n");
-            sigInfo.append("Algorithm: ").append(parsed.algorithm()).append("\n");
-            sigInfo.append("Signature Length: ").append(parsed.signatureBytes().length).append(" bytes\n");
-            sigInfo.append("Details: ").append(item.details()).append("\n");
+            sigInfo.append("Durum: ").append(item.status()).append("\n");
+            sigInfo.append("Algoritma: ").append(parsed.algorithm()).append("\n");
+            sigInfo.append("İmza Boyutu: ").append(parsed.signatureBytes().length).append(" bayt\n");
+            sigInfo.append("Detaylar: ").append(item.details()).append("\n");
             signatureInfoArea.setText(sigInfo.toString());
 
-            statusLabel.setText("🔍 Inspecting payload for: " + item.attackName() + " (" + item.severity() + ")");
-            log("[JWT-INSPECT] 🔍 Inspecting attack token for '" + item.attackName() + "' (alg: " + parsed.algorithm() + ")");
+            statusLabel.setText("🔍 Payload inceleniyor: " + item.attackName() + " (" + item.severity() + ")");
+            log("[JWT-INSPECT] 🔍 Saldırı token'ı inceleniyor: '" + item.attackName() + "' (alg: " + parsed.algorithm() + ")");
         } catch (Exception ex) {
             headerArea.setText("Token: " + token);
-            payloadArea.setText("Details: " + item.details());
-            signatureInfoArea.setText("Status: " + item.status());
-            statusLabel.setText("🔍 Showing payload for: " + item.attackName());
+            payloadArea.setText("Detaylar: " + item.details());
+            signatureInfoArea.setText("Durum: " + item.status());
+            statusLabel.setText("🔍 Payload gösteriliyor: " + item.attackName());
         }
     }
 
@@ -867,7 +867,7 @@ public class JwtPanel extends JPanel {
 
         if (item != null && item.fullModifiedToken() != null) {
             copyToClipboard(item.fullModifiedToken());
-            statusLabel.setText("📋 Copied full modified token for [" + item.attackName() + "] to clipboard!");
+            statusLabel.setText("📋 [" + item.attackName() + "] için tam değiştirilmiş token panoya kopyalandı!");
         }
     }
 
@@ -897,7 +897,7 @@ public class JwtPanel extends JPanel {
         }
         String curl = "curl -k -i -X GET '" + url + "' \\\n  -H 'Authorization: Bearer " + token + "'";
         copyToClipboard(curl);
-        statusLabel.setText("💻 Copied cURL command for [" + item.attackName() + "] to clipboard!");
+        statusLabel.setText("💻 [" + item.attackName() + "] için cURL komutu panoya kopyalandı!");
     }
 
     // =====================================================================
@@ -913,8 +913,8 @@ public class JwtPanel extends JPanel {
         tokenInputArea.setText(jwt);
         onDecode();
         String urlStr = (request != null && request.url() != null) ? request.url() : "HTTP Request";
-        statusLabel.setText("✅ Loaded JWT from Burp request: " + urlStr);
-        log("[JWT-IMPORT] 📥 Received request for URL: " + urlStr + " with token alg=" +
+        statusLabel.setText("✅ Burp isteğinden JWT yüklendi: " + urlStr);
+        log("[JWT-IMPORT] 📥 URL için istek alındı: " + urlStr + " token alg=" +
                 (currentToken != null ? currentToken.algorithm() : "unknown"));
     }
 
@@ -943,7 +943,7 @@ public class JwtPanel extends JPanel {
             onDecode();
         } else {
             tokenInputArea.setText(httpRequest);
-            statusLabel.setText("⚠️ No JWT detected in request — try pasting the token directly.");
+            statusLabel.setText("⚠️ İstekte JWT tespit edilemedi — token'ı doğrudan yapıştırmayı deneyin.");
         }
     }
 

@@ -27,7 +27,7 @@ public class TaskTablePanel extends JPanel {
     public TaskTablePanel(TaskRegistry registry) {
         super(new BorderLayout());
         this.registry = registry;
-        setBorder(BorderFactory.createTitledBorder("Active Tasks"));
+        setBorder(BorderFactory.createTitledBorder("Aktif Görevler"));
 
         table.setAutoCreateRowSorter(true);
         table.getColumnModel().getColumn(3).setCellRenderer(new StatusCellRenderer());
@@ -50,7 +50,7 @@ public class TaskTablePanel extends JPanel {
     }
 
     private static class TaskTableModel extends AbstractTableModel {
-        private static final String[] COLS = {"Timestamp", "Type", "URL", "Status", "Duration"};
+        private static final String[] COLS = {"Zaman Damgası", "Tür", "URL", "Durum", "Süre"};
         private List<ScanTask> rows = new ArrayList<>();
 
         void setRows(List<ScanTask> newRows) {

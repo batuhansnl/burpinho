@@ -39,10 +39,10 @@ public class AiProviderTab extends JPanel {
     private final JTextField apiUrl = new JTextField(30);
     private final JPasswordField apiKey = new JPasswordField(30);
     private final JComboBox<String> modelCombo = new JComboBox<>();
-    private final JButton refreshBtn = new JButton("Refresh");
+    private final JButton refreshBtn = new JButton("Yenile");
     private final JTextField maxTokens = new JTextField(8);
     private final JTextField azureApiVersion = new JTextField(16);
-    private final JButton testBtn = new JButton("Test Connection");
+    private final JButton testBtn = new JButton("Bağlantıyı Test Et");
     private final JLabel statusLabel = new JLabel(" ");
 
     public AiProviderTab(Settings settings, AiDispatcher dispatcher) {
@@ -57,12 +57,12 @@ public class AiProviderTab extends JPanel {
         }
 
         int row = 0;
-        addRow(row++, "AI Provider:", providerCombo);
+        addRow(row++, "AI Sağlayıcı:", providerCombo);
         addRow(row++, "API URL:", apiUrl);
-        addRow(row++, "API Key:", apiKey);
+        addRow(row++, "API Anahtarı (Key):", apiKey);
         addRow(row++, "Model:", modelRow());
         addRow(row++, "Max Tokens:", maxTokens);
-        addRow(row++, "Azure API Version:", azureApiVersion);
+        addRow(row++, "Azure API Sürümü:", azureApiVersion);
         addRow(row++, "", testBtn);
         addRow(row++, "", statusLabel);
         addHelp(row++);
@@ -118,13 +118,13 @@ public class AiProviderTab extends JPanel {
         maxTokens.setEnabled(true);
         azureApiVersion.setVisible(false);
 
-        statusLabel.setText("Configured for " + p.displayName() + ".");
+        statusLabel.setText("Yapılandırıldı: " + p.displayName() + ".");
     }
 
     private void onRefreshModels() {
         store();
         ProviderId p = selectedProvider();
-        statusLabel.setText("Loading models...");
+        statusLabel.setText("Model listesi yükleniyor...");
         refreshBtn.setEnabled(false);
         new Thread(() -> {
             List<String> models = dispatcher.get(p).listModels();
@@ -132,8 +132,8 @@ public class AiProviderTab extends JPanel {
                 setModels(models);
                 refreshBtn.setEnabled(true);
                 statusLabel.setText(models.isEmpty()
-                        ? "No models returned (check URL / key)."
-                        : models.size() + " models loaded.");
+                        ? "Model bulunamadı (URL / Key kontrol edin)."
+                        : models.size() + " model yüklendi.");
             });
         }, "burpinho-models").start();
     }
@@ -141,13 +141,13 @@ public class AiProviderTab extends JPanel {
     private void onTestConnection() {
         store();
         ProviderId p = selectedProvider();
-        statusLabel.setText("Testing " + p.displayName() + "...");
+        statusLabel.setText(p.displayName() + " test ediliyor...");
         testBtn.setEnabled(false);
         new Thread(() -> {
             TestResult result = dispatcher.testConnection(p);
             SwingUtilities.invokeLater(() -> {
                 testBtn.setEnabled(true);
-                statusLabel.setText((result.success() ? "OK: " : "FAILED: ") + result.message());
+                statusLabel.setText((result.success() ? "BAŞARILI: " : "BAŞARISIZ: ") + result.message());
             });
         }, "burpinho-test").start();
     }
@@ -224,12 +224,12 @@ public class AiProviderTab extends JPanel {
 
     private void addHelp(int row) {
         JTextArea help = new JTextArea(
-                "🧙‍♂️ burpinho Local LLM Notes:\n" +
-                "  - OpenAI Compatible (Local): http://<ip>:<port>/v1 or https://<domain>/v1\n" +
-                "    (vLLM, TGI, LocalAI, LM Studio, etc. API Key is optional).\n" +
-                "  - Ollama (Local): http://localhost:11434 (No API Key needed).\n" +
-                "  - Internal corporate self-signed TLS certificates are supported automatically.\n" +
-                "  - DataSanitizer redacts PII/tokens before analysis.");
+                "🧙‍♂️ burpinho Yerel LLM Notları:\n" +
+                "  - OpenAI Uyumlu (Yerel): http://<ip>:<port>/v1 veya https://<domain>/v1\n" +
+                "    (vLLM, TGI, LocalAI, LM Studio vb. API Anahtarı isteğe bağlıdır).\n" +
+                "  - Ollama (Yerel): http://localhost:11434 (API Anahtarı gerekmez).\n" +
+                "  - Şirket içi dahili self-signed TLS sertifikaları otomatik olarak desteklenir.\n" +
+                "  - DataSanitizer analizden önce PII/token verilerini otomatik maskeler.");
         help.setEditable(false);
         help.setOpaque(false);
         help.setBorder(null);

@@ -35,23 +35,23 @@ public class IpScanPanel extends JPanel {
 
     private final JTextField targetField = new JTextField(22);
     private final JComboBox<String> portProfileCombo = new JComboBox<>(new String[]{
-            "Top 25 Critical Ports",
-            "Web Ports (80,443,8080,8443,8000,8888,3000,5000,9000)",
-            "Top 100 Common Ports",
-            "Database Ports (1433,1521,3306,5432,6379,27017)",
-            "Custom Ports..."
+            "En Kritik 25 Port",
+            "Web Portları (80,443,8080,8443,8000,8888,3000,5000,9000)",
+            "En Yaygın 100 Port",
+            "Veritabanı Portları (1433,1521,3306,5432,6379,27017)",
+            "Özel Portlar..."
     });
     private final JTextField customPortsField = new JTextField(12);
     private final JSpinner threadsSpinner = new JSpinner(new SpinnerNumberModel(25, 1, 100, 5));
     private final JSpinner timeoutSpinner = new JSpinner(new SpinnerNumberModel(500, 100, 5000, 100));
 
-    private final JButton startBtn = new JButton("Start IP Scan");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JButton clearBtn = new JButton("Clear");
-    private final JButton exportBtn = new JButton("Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("IP Taramasını Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JButton clearBtn = new JButton("Temizle");
+    private final JButton exportBtn = new JButton("CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Scanned Targets: 0 | Alive Hosts: 0 | Open Ports Discovered: 0");
+    private final JLabel summaryLabel = new JLabel("Taranan Hedef: 0 | Canlı Host: 0 | Keşfedilen Açık Port: 0");
 
     private final DefaultTableModel hostsModel;
     private final JTable hostsTable;
@@ -70,35 +70,35 @@ public class IpScanPanel extends JPanel {
 
         // ---- Top Control Panel ----
         JPanel configPanel = new JPanel(new GridBagLayout());
-        configPanel.setBorder(BorderFactory.createTitledBorder("IP / CIDR & Port Scanner Configuration"));
+        configPanel.setBorder(BorderFactory.createTitledBorder("IP / CIDR & Port Tarayıcı Yapılandırması"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(3, 4, 3, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Row 0: Target & Profiles
         gbc.gridx = 0; gbc.gridy = 0;
-        configPanel.add(new JLabel("Target (IP/CIDR/Range):"), gbc);
+        configPanel.add(new JLabel("Hedef (IP/CIDR/Aralık):"), gbc);
         gbc.gridx = 1;
-        targetField.setToolTipText("e.g. 192.168.1.1, 192.168.1.1-50, 10.0.0.0/24, or domain.com");
+        targetField.setToolTipText("ör. 192.168.1.1, 192.168.1.1-50, 10.0.0.0/24 veya domain.com");
         configPanel.add(targetField, gbc);
 
         gbc.gridx = 2;
-        configPanel.add(new JLabel("Port Profile:"), gbc);
+        configPanel.add(new JLabel("Port Profili:"), gbc);
         gbc.gridx = 3;
         configPanel.add(portProfileCombo, gbc);
 
         gbc.gridx = 4;
-        customPortsField.setToolTipText("Comma-separated ports, e.g. 80,443,8080");
+        customPortsField.setToolTipText("Virgülle ayrılmış portlar, ör. 80,443,8080");
         customPortsField.setEnabled(false);
         configPanel.add(customPortsField, gbc);
 
         // Row 1: Threads, Timeout, Action buttons
         gbc.gridx = 0; gbc.gridy = 1;
-        configPanel.add(new JLabel("Threads:"), gbc);
+        configPanel.add(new JLabel("İş Parçacığı (Threads):"), gbc);
         gbc.gridx = 1;
         JPanel tPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         tPanel.add(threadsSpinner);
-        tPanel.add(new JLabel("Timeout (ms):"));
+        tPanel.add(new JLabel("Zaman Aşımı (ms):"));
         tPanel.add(timeoutSpinner);
         configPanel.add(tPanel, gbc);
 
@@ -132,14 +132,14 @@ public class IpScanPanel extends JPanel {
         configPanel.add(btnPanel, gbc);
 
         portProfileCombo.addActionListener(e -> {
-            boolean isCustom = "Custom Ports...".equals(portProfileCombo.getSelectedItem());
+            boolean isCustom = "Özel Portlar...".equals(portProfileCombo.getSelectedItem());
             customPortsField.setEnabled(isCustom);
         });
 
         add(configPanel, BorderLayout.NORTH);
 
         // ---- Center: Split Pane with Table & Audit Log ----
-        String[] columnNames = {"#", "IP Address", "PTR Hostname", "Open Ports", "HTTP Service / Title", "Latency", "Status"};
+        String[] columnNames = {"#", "IP Adresi", "PTR Host Adı", "Açık Portlar", "HTTP Servisi / Başlık", "Gecikme", "Durum"};
         hostsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -160,7 +160,7 @@ public class IpScanPanel extends JPanel {
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
                 if (!isSelected) {
-                    if ("ALIVE".equalsIgnoreCase(String.valueOf(value))) {
+                    if ("ALIVE".equalsIgnoreCase(String.valueOf(value)) || "CANLI".equalsIgnoreCase(String.valueOf(value))) {
                         c.setForeground(new Color(63, 185, 80));
                         setFont(getFont().deriveFont(Font.BOLD));
                     } else {
@@ -173,9 +173,9 @@ public class IpScanPanel extends JPanel {
 
         // Popup Menu
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem copyIp = new JMenuItem("Copy IP Address");
+        JMenuItem copyIp = new JMenuItem("IP Adresini Kopyala");
         copyIp.addActionListener(e -> copySelectedCell(1));
-        JMenuItem copyHost = new JMenuItem("Copy Hostname");
+        JMenuItem copyHost = new JMenuItem("Host Adını Kopyala");
         copyHost.addActionListener(e -> copySelectedCell(2));
         popupMenu.add(copyIp);
         popupMenu.add(copyHost);
@@ -188,11 +188,11 @@ public class IpScanPanel extends JPanel {
         logArea.setForeground(new Color(201, 209, 217));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Discovered IP Hosts & Port Services"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Keşfedilen IP Hostları & Port Servisleri"));
         tablePanel.add(new JScrollPane(hostsTable), BorderLayout.CENTER);
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setBorder(BorderFactory.createTitledBorder("Live Socket & Probe Audit Log"));
+        logPanel.setBorder(BorderFactory.createTitledBorder("Canlı Soket & İstek Günlüğü"));
         logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
         JSplitPane centerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, logPanel);
@@ -211,13 +211,13 @@ public class IpScanPanel extends JPanel {
     private void onStart() {
         String target = targetField.getText().trim();
         if (target.isEmpty()) {
-            statusLabel.setText("⚠️ Enter an IP, CIDR, or domain!");
+            statusLabel.setText("⚠️ Bir IP, CIDR veya domain girin!");
             return;
         }
 
         List<Integer> ports = getSelectedPorts();
         if (ports.isEmpty()) {
-            statusLabel.setText("⚠️ No valid ports specified!");
+            statusLabel.setText("⚠️ Geçerli port belirtilmedi!");
             return;
         }
 
@@ -228,7 +228,7 @@ public class IpScanPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Scanning network...");
+        statusLabel.setText("Ağ taranıyor...");
         logArea.setText("");
         hostsModel.setRowCount(0);
 
@@ -249,11 +249,11 @@ public class IpScanPanel extends JPanel {
 
                 SwingUtilities.invokeLater(() -> {
                     refreshAllHosts(result);
-                    statusLabel.setText("✅ Scan complete: " + result.totalAlive() + " alive hosts found");
+                    statusLabel.setText("✅ Tarama tamamlandı: " + result.totalAlive() + " canlı host bulundu");
                     scanState.info("burpinho [IP-SCAN]: Completed — " + result.totalAlive() + " alive hosts");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Hata: " + t.getMessage()));
                 scanState.error("burpinho [IP-SCAN]: " + t.getMessage());
             } finally {
                 SwingUtilities.invokeLater(() -> {
@@ -308,10 +308,10 @@ public class IpScanPanel extends JPanel {
             });
             totalPorts += h.openPorts().size();
         }
-        summaryLabel.setText("Scanned Targets: " + result.totalScanned() +
-                " | Alive Hosts: " + result.totalAlive() +
-                " | Open Ports Discovered: " + totalPorts +
-                " | Duration: " + (result.totalDurationMs() / 1000.0) + "s");
+        summaryLabel.setText("Taranan Hedef: " + result.totalScanned() +
+                " | Canlı Host: " + result.totalAlive() +
+                " | Keşfedilen Açık Port: " + totalPorts +
+                " | Süre: " + (result.totalDurationMs() / 1000.0) + "s");
     }
 
     private void updateSummary() {
@@ -319,7 +319,7 @@ public class IpScanPanel extends JPanel {
         for (int r = 0; r < hostsModel.getRowCount(); r++) {
             if ("ALIVE".equals(hostsModel.getValueAt(r, 6))) alive++;
         }
-        summaryLabel.setText("Discovered Alive Hosts: " + alive + " | Active scan in progress...");
+        summaryLabel.setText("Keşfedilen Canlı Host: " + alive + " | Tarama devam ediyor...");
     }
 
     private List<Integer> getSelectedPorts() {
@@ -358,20 +358,20 @@ public class IpScanPanel extends JPanel {
 
     private void onCancel() {
         ipScannerModule.cancel();
-        statusLabel.setText("Cancelling scan...");
+        statusLabel.setText("Tarama iptal ediliyor...");
         scanState.info("burpinho [IP-SCAN]: IP scan cancelled by user");
     }
 
     private void onClear() {
         hostsModel.setRowCount(0);
         logArea.setText("");
-        statusLabel.setText("Ready");
-        summaryLabel.setText("Scanned Targets: 0 | Alive Hosts: 0 | Open Ports Discovered: 0");
+        statusLabel.setText("Hazır");
+        summaryLabel.setText("Taranan Hedef: 0 | Canlı Host: 0 | Keşfedilen Açık Port: 0");
     }
 
     private void onExportCsv() {
         if (hostsModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No host data to export!", "Export CSV", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak host verisi yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -390,9 +390,9 @@ public class IpScanPanel extends JPanel {
                     }
                     fw.write(row.toString() + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported successfully to " + f.getAbsolutePath(), "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

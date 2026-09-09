@@ -30,8 +30,8 @@ public class ControlBar extends JPanel {
     private final Settings settings;
     private final ScanState scanState;
 
-    private final JButton scanningBtn = new JButton("Start Scanning");
-    private final JButton pauseBtn = new JButton("Pause All Tasks");
+    private final JButton scanningBtn = new JButton("Taramayı Başlat");
+    private final JButton pauseBtn = new JButton("Tüm Görevleri Duraklat");
 
     public ControlBar(Settings settings, ScanState scanState, Actions actions) {
         this.settings = settings;
@@ -41,23 +41,23 @@ public class ControlBar extends JPanel {
         setAlignmentX(Component.CENTER_ALIGNMENT);
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
 
-        JButton settingsBtn = colored(new JButton("Settings"), Theme.ACCENT_BLUE, Color.WHITE);
+        JButton settingsBtn = colored(new JButton("Ayarlar"), Theme.ACCENT_BLUE, Color.WHITE);
         settingsBtn.addActionListener(e -> actions.onSettings());
 
         scanningBtn.addActionListener(e -> actions.onToggleScanning());
 
-        JButton clearBtn = new JButton("Clear Completed");
+        JButton clearBtn = new JButton("Tamamlananları Temizle");
         clearBtn.addActionListener(e -> actions.onClearCompleted());
 
-        JButton cancelBtn = new JButton("Cancel All Tasks");
+        JButton cancelBtn = new JButton("Tüm Görevleri İptal Et");
         cancelBtn.addActionListener(e -> actions.onCancelAll());
 
         pauseBtn.addActionListener(e -> actions.onTogglePause());
 
-        JButton exportBtn = new JButton("Export CSV");
+        JButton exportBtn = new JButton("CSV Dışa Aktar");
         exportBtn.addActionListener(e -> actions.onExportCsv());
 
-        JButton toolStatusBtn = colored(new JButton("Tool Status"), Theme.ACCENT_ORANGE, Color.WHITE);
+        JButton toolStatusBtn = colored(new JButton("Araç Durumu"), Theme.ACCENT_ORANGE, Color.WHITE);
         toolStatusBtn.addActionListener(e -> actions.onToolStatus());
 
         add(settingsBtn);
@@ -74,13 +74,13 @@ public class ControlBar extends JPanel {
     public void refresh() {
         boolean scanning = settings.passiveEnabled();
         if (scanning) {
-            scanningBtn.setText("Stop Scanning");
+            scanningBtn.setText("Taramayı Durdur");
             style(scanningBtn, Theme.SCAN_GREEN, Color.WHITE);
         } else {
-            scanningBtn.setText("Start Scanning");
+            scanningBtn.setText("Taramayı Başlat");
             style(scanningBtn, Theme.SCAN_RED, Color.WHITE);
         }
-        pauseBtn.setText(scanState.isPaused() ? "Resume All Tasks" : "Pause All Tasks");
+        pauseBtn.setText(scanState.isPaused() ? "Tüm Görevleri Devam Ettir" : "Tüm Görevleri Duraklat");
     }
 
     private JButton colored(JButton b, Color bg, Color fg) {

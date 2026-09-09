@@ -40,23 +40,23 @@ public class XssPanel extends JPanel {
 
     private final JTextArea targetsArea = new JTextArea(3, 30);
     private final JComboBox<String> payloadPresetCombo = new JComboBox<>(new String[]{
-            "Auto Polyglot & Canary Reflection",
+            "Otomatik Polyglot & Canary Yansıma Analizi",
             "<svg/onload=alert(1)>",
             "\"><script>alert(1)</script>",
             "'\"><img src=x onerror=alert(1)>",
             "javascript:alert(1)",
-            "Custom Canary Payload..."
+            "Özel Canary Payload..."
     });
     private final JTextField customPayloadField = new JTextField(16);
     private final JSpinner threadsSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 50, 5));
 
-    private final JButton startBtn = new JButton("Start XSS Scan");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JButton clearBtn = new JButton("Clear");
-    private final JButton exportBtn = new JButton("Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("XSS Taramasını Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JButton clearBtn = new JButton("Temizle");
+    private final JButton exportBtn = new JButton("CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Confirmed XSS: 0 | Parameters Audited: 0");
+    private final JLabel summaryLabel = new JLabel("Doğrulanan XSS: 0 | Denetlenen Parametreler: 0");
 
     private final DefaultTableModel findingsModel;
     private final JTable findingsTable;
@@ -72,24 +72,24 @@ public class XssPanel extends JPanel {
 
         // ---- Top Config ----
         JPanel configPanel = new JPanel(new GridBagLayout());
-        configPanel.setBorder(BorderFactory.createTitledBorder("Cross-Site Scripting (XSS) Engine Configuration"));
+        configPanel.setBorder(BorderFactory.createTitledBorder("Cross-Site Scripting (XSS) Motor Yapılandırması"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(3, 4, 3, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        configPanel.add(new JLabel("Target URLs with Params:"), gbc);
+        configPanel.add(new JLabel("Parametreli Hedef URL'ler:"), gbc);
         gbc.gridx = 1;
-        targetsArea.setToolTipText("Enter one or more URLs containing parameters (e.g. https://example.com/search?q=test&cat=1)");
+        targetsArea.setToolTipText("Parametre içeren bir veya birden fazla URL girin (örn: https://example.com/search?q=test&cat=1)");
         configPanel.add(new JScrollPane(targetsArea), gbc);
 
         gbc.gridx = 2;
-        configPanel.add(new JLabel("Payload Preset:"), gbc);
+        configPanel.add(new JLabel("Payload Şablonu:"), gbc);
         gbc.gridx = 3;
         configPanel.add(payloadPresetCombo, gbc);
 
         gbc.gridx = 4;
-        customPayloadField.setToolTipText("Custom XSS canary payload");
+        customPayloadField.setToolTipText("Özel XSS canary payload'ı");
         customPayloadField.setEnabled(false);
         configPanel.add(customPayloadField, gbc);
 
@@ -131,14 +131,14 @@ public class XssPanel extends JPanel {
         configPanel.add(btnPanel, gbc);
 
         payloadPresetCombo.addActionListener(e -> {
-            boolean isCustom = "Custom Canary Payload...".equals(payloadPresetCombo.getSelectedItem());
+            boolean isCustom = "Özel Canary Payload...".equals(payloadPresetCombo.getSelectedItem());
             customPayloadField.setEnabled(isCustom);
         });
 
         add(configPanel, BorderLayout.NORTH);
 
         // ---- Center: Table & Live Log Split Pane ----
-        String[] columnNames = {"#", "Severity", "Target URL", "Parameter", "Payload Used", "Reflection State", "Status"};
+        String[] columnNames = {"#", "Severity", "Hedef URL", "Parametre", "Kullanılan Payload", "Yansıma Durumu", "Durum"};
         findingsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -168,9 +168,9 @@ public class XssPanel extends JPanel {
 
         // Popup Menu
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem copyUrl = new JMenuItem("Copy Vulnerable URL");
+        JMenuItem copyUrl = new JMenuItem("Zafiyetli URL'yi Kopyala");
         copyUrl.addActionListener(e -> copySelectedCell(2));
-        JMenuItem copyPayload = new JMenuItem("Copy Payload");
+        JMenuItem copyPayload = new JMenuItem("Payload'ı Kopyala");
         copyPayload.addActionListener(e -> copySelectedCell(4));
         popupMenu.add(copyUrl);
         popupMenu.add(copyPayload);
@@ -183,11 +183,11 @@ public class XssPanel extends JPanel {
         logArea.setForeground(new Color(201, 209, 217));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Confirmed XSS Vulnerabilities"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Doğrulanan XSS Zafiyetleri"));
         tablePanel.add(new JScrollPane(findingsTable), BorderLayout.CENTER);
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setBorder(BorderFactory.createTitledBorder("XSS Live Payload Injection & Reflection Audit Log"));
+        logPanel.setBorder(BorderFactory.createTitledBorder("XSS Canlı Payload Enjeksiyonu & Yansıma Denetim Günlüğü"));
         logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
         JSplitPane centerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, logPanel);
@@ -206,7 +206,7 @@ public class XssPanel extends JPanel {
     private void onStart() {
         String rawTargets = targetsArea.getText().trim();
         if (rawTargets.isEmpty()) {
-            statusLabel.setText("⚠️ Enter at least one URL with parameters!");
+            statusLabel.setText("⚠️ Parametre içeren en az bir URL girin!");
             return;
         }
 
@@ -223,7 +223,7 @@ public class XssPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Injecting XSS probes...");
+        statusLabel.setText("XSS probları enjekte ediliyor...");
         logArea.setText("");
         findingsModel.setRowCount(0);
 
@@ -233,11 +233,11 @@ public class XssPanel extends JPanel {
             try {
                 runXssAudits(targetList, threads);
                 SwingUtilities.invokeLater(() -> {
-                    statusLabel.setText("✅ XSS scan completed.");
+                    statusLabel.setText("✅ XSS taraması tamamlandı.");
                     scanState.info("burpinho [XSS]: Scan finished.");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Hata: " + t.getMessage()));
             } finally {
                 SwingUtilities.invokeLater(() -> {
                     startBtn.setEnabled(true);
@@ -257,7 +257,7 @@ public class XssPanel extends JPanel {
         for (String rawUrl : targets) {
             if (cancelled) break;
             if (!rawUrl.contains("?") || !rawUrl.contains("=")) {
-                log("[!] Skipping (no parameters found in URL): " + rawUrl);
+                log("[!] Atlanıyor (URL içinde parametre bulunamadı): " + rawUrl);
                 continue;
             }
 
@@ -265,13 +265,13 @@ public class XssPanel extends JPanel {
                 for (String payload : payloadsToTest) {
                     if (cancelled) break;
                     stats[0]++;
-                    log("[*] Probing URL: " + rawUrl + " with payload: " + payload);
+                    log("[*] URL test ediliyor: " + rawUrl + " payload: " + payload);
 
                     try {
                         String testUrl = rawUrl.replaceAll("=([^&]*)", "=" + URLEncoder.encode(payload, StandardCharsets.UTF_8));
                         URL u = new URI(testUrl).toURL();
                         HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/3.2");
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/4.0");
                         conn.setConnectTimeout(4500);
                         conn.setReadTimeout(4500);
 
@@ -287,21 +287,21 @@ public class XssPanel extends JPanel {
 
                             if (resp.contains(payload) || (payload.contains("<svg") && resp.contains("<svg/onload=1>"))) {
                                 stats[1]++;
-                                log("[+] [CONFIRMED XSS VULNERABILITY] Payload reflected raw at: " + testUrl);
+                                log("[+] [DOĞRULANMIŞ XSS ZAFIYETİ] Payload ham olarak yansıdı: " + testUrl);
                                 SwingUtilities.invokeLater(() -> {
                                     int id = findingsModel.getRowCount() + 1;
                                     findingsModel.addRow(new Object[]{
-                                            id, "HIGH", rawUrl, "QueryParam", payload, "Unencoded Reflection in Body", "VULNERABLE"
+                                            id, "HIGH", rawUrl, "QueryParam", payload, "Gövdede Filtresiz Yansıma", "VULNERABLE"
                                     });
-                                    summaryLabel.setText("Confirmed XSS: " + stats[1] + " | Parameters Audited: " + stats[0]);
+                                    summaryLabel.setText("Doğrulanan XSS: " + stats[1] + " | Denetlenen Parametreler: " + stats[0]);
                                 });
                                 break;
                             } else {
-                                log("[-] Not reflected or sanitized: " + testUrl);
+                                log("[-] Yansımadı veya sanitize edildi: " + testUrl);
                             }
                         }
                     } catch (Throwable t) {
-                        log("[!] Request failed: " + t.getMessage());
+                        log("[!] İstek başarısız: " + t.getMessage());
                     }
                 }
             });
@@ -313,9 +313,11 @@ public class XssPanel extends JPanel {
         } catch (InterruptedException ignored) {}
 
         SwingUtilities.invokeLater(() -> {
-            summaryLabel.setText("Confirmed XSS: " + stats[1] + " | Parameters Audited: " + stats[0]);
+            summaryLabel.setText("Doğrulanan XSS: " + stats[1] + " | Denetlenen Parametreler: " + stats[0]);
         });
     }
+
+    private void getPayloadsToTestInternal() {}
 
     private List<String> getPayloadsToTest() {
         int idx = payloadPresetCombo.getSelectedIndex();
@@ -346,20 +348,20 @@ public class XssPanel extends JPanel {
 
     private void onCancel() {
         cancelled = true;
-        statusLabel.setText("Cancelling XSS scan...");
+        statusLabel.setText("XSS taraması iptal ediliyor...");
         scanState.info("burpinho [XSS]: Cancelled by user");
     }
 
     private void onClear() {
         findingsModel.setRowCount(0);
         logArea.setText("");
-        statusLabel.setText("Ready");
-        summaryLabel.setText("Confirmed XSS: 0 | Parameters Audited: 0");
+        statusLabel.setText("Hazır");
+        summaryLabel.setText("Doğrulanan XSS: 0 | Denetlenen Parametreler: 0");
     }
 
     private void onExportCsv() {
         if (findingsModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No XSS findings to export!", "Export CSV", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak XSS bulgusu yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -378,9 +380,9 @@ public class XssPanel extends JPanel {
                     }
                     fw.write(row.toString() + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported successfully to " + f.getAbsolutePath(), "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

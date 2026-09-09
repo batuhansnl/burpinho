@@ -31,9 +31,9 @@ public class ScannerPanel extends JPanel {
     private final JCheckBox sqlmapCb = new JCheckBox("SQLMap", true);
     private final JCheckBox niktoCb = new JCheckBox("Nikto", true);
     private final JCheckBox ffufCb = new JCheckBox("Ffuf (Fuzzing)", false);
-    private final JButton startBtn = new JButton("Start Scan");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("Taramayı Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
     private final JTextArea outputArea;
 
@@ -54,14 +54,14 @@ public class ScannerPanel extends JPanel {
 
         // Target row
         JPanel targetRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
-        targetRow.add(new JLabel("Target:"));
-        targetField.setToolTipText("Target domain or URL");
+        targetRow.add(new JLabel("Hedef:"));
+        targetField.setToolTipText("Hedef domain veya URL");
         targetRow.add(targetField);
         topPanel.add(targetRow);
 
         // URLs input
         JPanel urlsPanel = new JPanel(new BorderLayout());
-        urlsPanel.setBorder(BorderFactory.createTitledBorder("URLs to Scan (one per line, optional)"));
+        urlsPanel.setBorder(BorderFactory.createTitledBorder("Taranacak URL'ler (her satıra bir adet, isteğe bağlı)"));
         urlsArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
         urlsPanel.add(new JScrollPane(urlsArea), BorderLayout.CENTER);
         urlsPanel.setPreferredSize(new Dimension(0, 100));
@@ -69,7 +69,7 @@ public class ScannerPanel extends JPanel {
 
         // Tool selection row
         JPanel toolRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        toolRow.setBorder(BorderFactory.createTitledBorder("Tools"));
+        toolRow.setBorder(BorderFactory.createTitledBorder("Araçlar (Tools)"));
         toolRow.add(nucleiCb);
         toolRow.add(dalfoxCb);
         toolRow.add(sqlmapCb);
@@ -110,7 +110,7 @@ public class ScannerPanel extends JPanel {
     private void onStart() {
         String target = targetField.getText().trim();
         if (target.isEmpty()) {
-            statusLabel.setText("Enter a target!");
+            statusLabel.setText("Bir hedef girin!");
             return;
         }
         target = target.replaceFirst("^https?://", "").replaceFirst("/.*$", "");
@@ -127,7 +127,7 @@ public class ScannerPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Scanning...");
+        statusLabel.setText("Taranıyor...");
         outputArea.setText("");
 
         scanState.info("burpinho [SCANNER]: Starting scan for " + cleanTarget);
@@ -147,11 +147,11 @@ public class ScannerPanel extends JPanel {
                 SwingUtilities.invokeLater(() -> {
                     outputArea.append("\n" + result.toSummary());
                     outputArea.setCaretPosition(outputArea.getDocument().getLength());
-                    statusLabel.setText("Scan complete: " + result.totalFindings() + " findings");
+                    statusLabel.setText("Tarama tamamlandı: " + result.totalFindings() + " bulgu");
                     scanState.info("burpinho [SCANNER]: Completed — " + result.totalFindings() + " findings");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("Hata: " + t.getMessage()));
                 scanState.error("burpinho [SCANNER]: " + t.getMessage());
             } finally {
                 SwingUtilities.invokeLater(() -> {
@@ -165,7 +165,7 @@ public class ScannerPanel extends JPanel {
 
     private void onCancel() {
         scannerModule.cancel();
-        statusLabel.setText("Cancelling...");
+        statusLabel.setText("İptal ediliyor...");
     }
 
     public void setTarget(String target) { targetField.setText(target); }

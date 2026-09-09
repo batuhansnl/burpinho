@@ -80,53 +80,53 @@ public class ContextMenuProvider implements ContextMenuItemsProvider {
         JMenu menu = new JMenu("burpinho");
 
         // 1. AI Analyze
-        JMenuItem analyzeItem = new JMenuItem("⚡ Analyze Request (AI)");
+        JMenuItem analyzeItem = new JMenuItem("⚡ İsteği Analiz Et (AI)");
         analyzeItem.addActionListener(e -> dispatchAnalyze(selected));
         menu.add(analyzeItem);
 
         menu.addSeparator();
 
         // 2. Recon Target
-        JMenuItem reconItem = new JMenuItem("🔍 Send Host to Recon (Subdomain & IP)");
+        JMenuItem reconItem = new JMenuItem("🔍 Host'u Keşfe Gönder (Subdomain & IP)");
         reconItem.addActionListener(e -> dispatchRecon(selected));
         menu.add(reconItem);
 
         // 3. IP / Network Scanner
-        JMenuItem ipScanItem = new JMenuItem("🌐 Send Host to IP & Network Scanner");
+        JMenuItem ipScanItem = new JMenuItem("🌐 Host'u IP & Ağ Tarayıcısına Gönder");
         ipScanItem.addActionListener(e -> dispatchIpScan(selected));
         menu.add(ipScanItem);
 
         // 4. Vulnerability Scanner
-        JMenuItem vulnScanItem = new JMenuItem("🛡️ Send URL to Vulnerability Scanner");
+        JMenuItem vulnScanItem = new JMenuItem("🛡️ URL'i Güvenlik Açığı Tarayıcısına Gönder");
         vulnScanItem.addActionListener(e -> dispatchVulnScan(selected));
         menu.add(vulnScanItem);
 
         menu.addSeparator();
 
         // 5. XSS Analyzer
-        JMenuItem xssItem = new JMenuItem("🧪 Send URL to XSS Analyzer");
+        JMenuItem xssItem = new JMenuItem("🧪 URL'i XSS Analizörüne Gönder");
         xssItem.addActionListener(e -> dispatchXss(selected));
         menu.add(xssItem);
 
         // 6. SQLi Analyzer
-        JMenuItem sqliItem = new JMenuItem("💉 Send URL to SQLi Analyzer");
+        JMenuItem sqliItem = new JMenuItem("💉 URL'i SQLi Analizörüne Gönder");
         sqliItem.addActionListener(e -> dispatchSqli(selected));
         menu.add(sqliItem);
 
         // 7. Path Fuzzer
-        JMenuItem fuzzerItem = new JMenuItem("🎯 Send Base URL to Path Fuzzer");
+        JMenuItem fuzzerItem = new JMenuItem("🎯 Base URL'i Path Fuzzer'a Gönder");
         fuzzerItem.addActionListener(e -> dispatchFuzzer(selected));
         menu.add(fuzzerItem);
 
         // 8. Exploit & PoC Advisor
-        JMenuItem exploitItem = new JMenuItem("💥 Send URL to Exploit & PoC Generator");
+        JMenuItem exploitItem = new JMenuItem("💥 URL'i Exploit & PoC Üreticiye Gönder");
         exploitItem.addActionListener(e -> dispatchExploit(selected));
         menu.add(exploitItem);
 
         menu.addSeparator();
 
         // 9. JWT Attack
-        JMenuItem jwtItem = new JMenuItem("🔐 Send to JWT Attacker (Auto-Detect)");
+        JMenuItem jwtItem = new JMenuItem("🔐 JWT Saldırganına Gönder (Otomatik Tespit)");
         jwtItem.addActionListener(e -> dispatchJwt(selected));
         menu.add(jwtItem);
 

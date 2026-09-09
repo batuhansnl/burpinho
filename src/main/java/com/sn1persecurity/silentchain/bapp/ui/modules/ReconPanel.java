@@ -31,13 +31,13 @@ public class ReconPanel extends JPanel {
     private final ScanState scanState;
 
     private final JTextField targetField = new JTextField(24);
-    private final JButton startBtn = new JButton("Start Full Recon");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JButton clearBtn = new JButton("Clear");
-    private final JButton exportBtn = new JButton("Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("Tam Keşfi Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JButton clearBtn = new JButton("Temizle");
+    private final JButton exportBtn = new JButton("CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Subdomains: 0 | Live Hosts: 0 | Total IPs: 0 | Open Ports: 0");
+    private final JLabel summaryLabel = new JLabel("Subdomain: 0 | Canlı Host: 0 | Toplam IP: 0 | Açık Port: 0");
 
     private final DefaultTableModel subdomainModel;
     private final JTable subdomainTable;
@@ -57,8 +57,8 @@ public class ReconPanel extends JPanel {
 
         // ---- Top Control Panel ----
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
-        topPanel.add(new JLabel("Target Domain:"));
-        targetField.setToolTipText("Enter target domain (e.g. example.com)");
+        topPanel.add(new JLabel("Hedef Domain:"));
+        targetField.setToolTipText("Hedef domaini girin (ör. example.com)");
         topPanel.add(targetField);
 
         startBtn.setBackground(Theme.ACCENT_BLUE);
@@ -89,7 +89,7 @@ public class ReconPanel extends JPanel {
         add(topPanel, BorderLayout.NORTH);
 
         // ---- Center: Subdomains Table + Live Log Split Pane ----
-        String[] columnNames = {"#", "Subdomain", "Resolved IP(s)", "Open Ports", "HTTP Code", "Title / Web Server", "Status"};
+        String[] columnNames = {"#", "Subdomain", "Çözümlenen IP(ler)", "Açık Portlar", "HTTP Kodu", "Başlık / Web Sunucusu", "Durum"};
         subdomainModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -115,7 +115,7 @@ public class ReconPanel extends JPanel {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
                 String val = String.valueOf(value);
                 if (!isSelected) {
-                    if ("ALIVE".equalsIgnoreCase(val)) {
+                    if ("ALIVE".equalsIgnoreCase(val) || "CANLI".equalsIgnoreCase(val)) {
                         c.setForeground(new Color(63, 185, 80));
                         setFont(getFont().deriveFont(Font.BOLD));
                     } else {
@@ -128,9 +128,9 @@ public class ReconPanel extends JPanel {
 
         // Right-click context menu on table
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem copySub = new JMenuItem("Copy Subdomain");
+        JMenuItem copySub = new JMenuItem("Subdomain'i Kopyala");
         copySub.addActionListener(e -> copySelectedCell(1));
-        JMenuItem copyIp = new JMenuItem("Copy IP Address");
+        JMenuItem copyIp = new JMenuItem("IP Adresini Kopyala");
         copyIp.addActionListener(e -> copySelectedCell(2));
         popupMenu.add(copySub);
         popupMenu.add(copyIp);
@@ -143,11 +143,11 @@ public class ReconPanel extends JPanel {
         outputArea.setForeground(new Color(201, 209, 217));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Discovered Subdomains & Live Host Inventory"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Keşfedilen Subdomainler & Canlı Host Envanteri"));
         tablePanel.add(new JScrollPane(subdomainTable), BorderLayout.CENTER);
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setBorder(BorderFactory.createTitledBorder("Recon Live Execution Audit Log"));
+        logPanel.setBorder(BorderFactory.createTitledBorder("Canlı Keşif Günlüğü"));
         logPanel.add(new JScrollPane(outputArea), BorderLayout.CENTER);
 
         JSplitPane centerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, logPanel);
@@ -166,7 +166,7 @@ public class ReconPanel extends JPanel {
     private void onStart() {
         String target = targetField.getText().trim();
         if (target.isEmpty()) {
-            statusLabel.setText("⚠️ Please enter a target domain!");
+            statusLabel.setText("⚠️ Lütfen bir hedef domain girin!");
             return;
         }
 
@@ -178,7 +178,7 @@ public class ReconPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Running reconnaissance...");
+        statusLabel.setText("Keşif yapılıyor...");
         outputArea.setText("");
         subdomainModel.setRowCount(0);
 
@@ -201,11 +201,11 @@ public class ReconPanel extends JPanel {
                     outputArea.append("\n" + result.toSummary());
                     outputArea.setCaretPosition(outputArea.getDocument().getLength());
 
-                    statusLabel.setText("✅ Recon complete: " + result.subdomainCount() + " subdomains, " + result.aliveCount() + " alive");
+                    statusLabel.setText("✅ Keşif tamamlandı: " + result.subdomainCount() + " subdomain, " + result.aliveCount() + " canlı host");
                     scanState.info("burpinho [RECON]: Completed — " + result.subdomainCount() + " subdomains, " + result.aliveCount() + " alive");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Hata: " + t.getMessage()));
                 scanState.error("burpinho [RECON]: " + t.getMessage());
             } finally {
                 SwingUtilities.invokeLater(() -> {
@@ -245,28 +245,28 @@ public class ReconPanel extends JPanel {
             totalOpenPorts += e.openPorts().size();
         }
 
-        summaryLabel.setText("Subdomains: " + entries.size() +
-                " | Live Hosts: " + result.aliveCount() +
-                " | Total IPs: " + totalIps +
-                " | Open Ports: " + totalOpenPorts);
+        summaryLabel.setText("Subdomain: " + entries.size() +
+                " | Canlı Host: " + result.aliveCount() +
+                " | Toplam IP: " + totalIps +
+                " | Açık Port: " + totalOpenPorts);
     }
 
     private void onCancel() {
         reconModule.cancel();
-        statusLabel.setText("Cancelling recon...");
+        statusLabel.setText("Keşif iptal ediliyor...");
         scanState.info("burpinho [RECON]: Recon pipeline cancelled by user");
     }
 
     private void onClear() {
         subdomainModel.setRowCount(0);
         outputArea.setText("");
-        statusLabel.setText("Ready");
-        summaryLabel.setText("Subdomains: 0 | Live Hosts: 0 | Total IPs: 0 | Open Ports: 0");
+        statusLabel.setText("Hazır");
+        summaryLabel.setText("Subdomain: 0 | Canlı Host: 0 | Toplam IP: 0 | Açık Port: 0");
     }
 
     private void onExportCsv() {
         if (subdomainModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No data to export!", "Export CSV", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak veri yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -285,9 +285,9 @@ public class ReconPanel extends JPanel {
                     }
                     fw.write(row.toString() + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported successfully to " + f.getAbsolutePath(), "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

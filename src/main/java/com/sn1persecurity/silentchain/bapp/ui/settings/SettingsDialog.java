@@ -55,20 +55,20 @@ public class SettingsDialog {
         this.advancedTab = new AdvancedTab(settings, scanState, taskRegistry);
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("AI Provider", aiTab);
-        tabs.addTab("Tools", toolsTab);
-        tabs.addTab("Advanced", advancedTab);
+        tabs.addTab("AI Sağlayıcı", aiTab);
+        tabs.addTab("Araçlar", toolsTab);
+        tabs.addTab("Gelişmiş", advancedTab);
 
-        JButton saveBtn = new JButton("Save");
+        JButton saveBtn = new JButton("Kaydet");
         saveBtn.addActionListener(e -> onSave());
-        JButton cancelBtn = new JButton("Cancel");
+        JButton cancelBtn = new JButton("İptal");
         cancelBtn.addActionListener(e -> onCancel());
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
         buttons.add(saveBtn);
         buttons.add(cancelBtn);
 
-        dialog = new JDialog(parent, SilentchainExtension.EXTENSION_NAME + " Settings");
+        dialog = new JDialog(parent, SilentchainExtension.EXTENSION_NAME + " Ayarları");
         dialog.setModal(true);
         dialog.getContentPane().setLayout(new BorderLayout());
         dialog.getContentPane().add(tabs, BorderLayout.CENTER);

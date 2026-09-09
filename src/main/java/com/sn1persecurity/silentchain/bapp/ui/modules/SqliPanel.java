@@ -41,20 +41,20 @@ public class SqliPanel extends JPanel {
 
     private final JTextArea targetsArea = new JTextArea(3, 30);
     private final JComboBox<String> techniqueCombo = new JComboBox<>(new String[]{
-            "Comprehensive (Error + Boolean + Time-based)",
-            "Error-based Injection (Syntax & Engine Signatures)",
-            "Boolean-based Quote Break (' OR '1'='1)",
-            "Time-based Blind Delay (SLEEP / pg_sleep / WAITFOR)"
+            "Kapsamlı (Hata + Boolean + Zaman Tabanlı / Blind)",
+            "Hata Tabanlı Enjeksiyon (Sözdizimi & Veritabanı Hata İmzaları)",
+            "Boolean Tabanlı Tırnak Kırma (' OR '1'='1)",
+            "Zaman Tabanlı Blind Gecikme (SLEEP / pg_sleep / WAITFOR)"
     });
     private final JSpinner threadsSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 50, 5));
 
-    private final JButton startBtn = new JButton("Start SQLi Scan");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JButton clearBtn = new JButton("Clear");
-    private final JButton exportBtn = new JButton("Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("SQLi Taramasını Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JButton clearBtn = new JButton("Temizle");
+    private final JButton exportBtn = new JButton("CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Confirmed SQLi: 0 | Parameters Audited: 0");
+    private final JLabel summaryLabel = new JLabel("Doğrulanan SQLi: 0 | Denetlenen Parametreler: 0");
 
     private final DefaultTableModel findingsModel;
     private final JTable findingsTable;
@@ -77,19 +77,19 @@ public class SqliPanel extends JPanel {
 
         // ---- Top Config ----
         JPanel configPanel = new JPanel(new GridBagLayout());
-        configPanel.setBorder(BorderFactory.createTitledBorder("SQL Injection (SQLi) Engine Configuration"));
+        configPanel.setBorder(BorderFactory.createTitledBorder("SQL Injection (SQLi) Motor Yapılandırması"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(3, 4, 3, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        configPanel.add(new JLabel("Target URLs with Params:"), gbc);
+        configPanel.add(new JLabel("Parametreli Hedef URL'ler:"), gbc);
         gbc.gridx = 1;
-        targetsArea.setToolTipText("Enter one or more URLs containing parameters (e.g. https://example.com/item?id=10&cat=2)");
+        targetsArea.setToolTipText("Parametre içeren bir veya birden fazla URL girin (örn: https://example.com/item?id=10&cat=2)");
         configPanel.add(new JScrollPane(targetsArea), gbc);
 
         gbc.gridx = 2;
-        configPanel.add(new JLabel("Injection Technique:"), gbc);
+        configPanel.add(new JLabel("Enjeksiyon Tekniği:"), gbc);
         gbc.gridx = 3;
         configPanel.add(techniqueCombo, gbc);
 
@@ -132,7 +132,7 @@ public class SqliPanel extends JPanel {
         add(configPanel, BorderLayout.NORTH);
 
         // ---- Center: Table & Live Log Split Pane ----
-        String[] columnNames = {"#", "Severity", "Target URL", "Parameter", "Payload / Vector", "Database Signature", "Status"};
+        String[] columnNames = {"#", "Severity", "Hedef URL", "Parametre", "Payload / Vektör", "Veritabanı İmzası", "Durum"};
         findingsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -162,9 +162,9 @@ public class SqliPanel extends JPanel {
 
         // Popup Menu
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem copyUrl = new JMenuItem("Copy Target URL");
+        JMenuItem copyUrl = new JMenuItem("Hedef URL'yi Kopyala");
         copyUrl.addActionListener(e -> copySelectedCell(2));
-        JMenuItem copySig = new JMenuItem("Copy Database Error Signature");
+        JMenuItem copySig = new JMenuItem("Veritabanı Hata İmzasını Kopyala");
         copySig.addActionListener(e -> copySelectedCell(5));
         popupMenu.add(copyUrl);
         popupMenu.add(copySig);
@@ -177,11 +177,11 @@ public class SqliPanel extends JPanel {
         logArea.setForeground(new Color(201, 209, 217));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Confirmed SQL Injection Vulnerabilities"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Doğrulanan SQL Injection Zafiyetleri"));
         tablePanel.add(new JScrollPane(findingsTable), BorderLayout.CENTER);
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setBorder(BorderFactory.createTitledBorder("SQLi Live Probe Execution & Error Matching Log"));
+        logPanel.setBorder(BorderFactory.createTitledBorder("SQLi Canlı Test Çalıştırma & Hata Eşleme Günlüğü"));
         logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
         JSplitPane centerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, logPanel);
@@ -200,7 +200,7 @@ public class SqliPanel extends JPanel {
     private void onStart() {
         String rawTargets = targetsArea.getText().trim();
         if (rawTargets.isEmpty()) {
-            statusLabel.setText("⚠️ Enter at least one URL with parameters!");
+            statusLabel.setText("⚠️ Parametre içeren en az bir URL girin!");
             return;
         }
 
@@ -217,7 +217,7 @@ public class SqliPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Auditing SQL injection vectors...");
+        statusLabel.setText("SQL injection vektörleri denetleniyor...");
         logArea.setText("");
         findingsModel.setRowCount(0);
 
@@ -227,11 +227,11 @@ public class SqliPanel extends JPanel {
             try {
                 runSqliAudits(targetList, threads);
                 SwingUtilities.invokeLater(() -> {
-                    statusLabel.setText("✅ SQLi scan completed.");
+                    statusLabel.setText("✅ SQLi taraması tamamlandı.");
                     scanState.info("burpinho [SQLI]: Scan finished.");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Hata: " + t.getMessage()));
             } finally {
                 SwingUtilities.invokeLater(() -> {
                     startBtn.setEnabled(true);
@@ -251,7 +251,7 @@ public class SqliPanel extends JPanel {
         for (String rawUrl : targets) {
             if (cancelled) break;
             if (!rawUrl.contains("?") || !rawUrl.contains("=")) {
-                log("[!] Skipping (no parameters found): " + rawUrl);
+                log("[!] Atlanıyor (URL içinde parametre bulunamadı): " + rawUrl);
                 continue;
             }
 
@@ -259,14 +259,14 @@ public class SqliPanel extends JPanel {
                 for (String payload : payloads) {
                     if (cancelled) break;
                     stats[0]++;
-                    log("[*] Testing URL: " + rawUrl + " with payload: " + payload);
+                    log("[*] URL test ediliyor: " + rawUrl + " payload: " + payload);
 
                     long t0 = System.currentTimeMillis();
                     try {
                         String testUrl = rawUrl.replaceAll("=([^&]*)", "=" + URLEncoder.encode(payload, StandardCharsets.UTF_8));
                         URL u = new URI(testUrl).toURL();
                         HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/3.2");
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/4.0");
                         conn.setConnectTimeout(6000);
                         conn.setReadTimeout(6000);
 
@@ -287,13 +287,13 @@ public class SqliPanel extends JPanel {
                             for (String sig : DB_ERROR_SIGNATURES) {
                                 if (resp.contains(sig)) {
                                     stats[1]++;
-                                    log("[+] [CRITICAL SQL INJECTION] Triggered DB error: '" + sig + "' at: " + testUrl);
+                                    log("[+] [CRITICAL SQL INJECTION] Veritabanı hatası tetiklendi: '" + sig + "' konum: " + testUrl);
                                     SwingUtilities.invokeLater(() -> {
                                         int id = findingsModel.getRowCount() + 1;
                                         findingsModel.addRow(new Object[]{
                                                 id, "CRITICAL", rawUrl, "QueryParam", payload, "DB Error: " + sig, "VULNERABLE"
                                         });
-                                        summaryLabel.setText("Confirmed SQLi: " + stats[1] + " | Parameters Audited: " + stats[0]);
+                                        summaryLabel.setText("Doğrulanan SQLi: " + stats[1] + " | Denetlenen Parametreler: " + stats[0]);
                                     });
                                     break;
                                 }
@@ -302,18 +302,18 @@ public class SqliPanel extends JPanel {
                             // 2. Check Time-based delay
                             if (payload.contains("SLEEP") && elapsed >= 2800) {
                                 stats[1]++;
-                                log("[+] [CRITICAL TIME-BASED SQLI] Target delayed response by " + elapsed + "ms at: " + testUrl);
+                                log("[+] [CRITICAL TIME-BASED SQLI] Hedef yanıtı " + elapsed + "ms geciktirdi konum: " + testUrl);
                                 SwingUtilities.invokeLater(() -> {
                                     int id = findingsModel.getRowCount() + 1;
                                     findingsModel.addRow(new Object[]{
-                                            id, "CRITICAL", rawUrl, "QueryParam", payload, "Time Delay: " + elapsed + "ms", "VULNERABLE"
+                                            id, "CRITICAL", rawUrl, "QueryParam", payload, "Zaman Gecikmesi: " + elapsed + "ms", "VULNERABLE"
                                     });
-                                    summaryLabel.setText("Confirmed SQLi: " + stats[1] + " | Parameters Audited: " + stats[0]);
+                                    summaryLabel.setText("Doğrulanan SQLi: " + stats[1] + " | Denetlenen Parametreler: " + stats[0]);
                                 });
                             }
                         }
                     } catch (Throwable t) {
-                        log("[!] Error: " + t.getMessage());
+                        log("[!] Hata: " + t.getMessage());
                     }
                 }
             });
@@ -325,7 +325,7 @@ public class SqliPanel extends JPanel {
         } catch (InterruptedException ignored) {}
 
         SwingUtilities.invokeLater(() -> {
-            summaryLabel.setText("Confirmed SQLi: " + stats[1] + " | Parameters Audited: " + stats[0]);
+            summaryLabel.setText("Doğrulanan SQLi: " + stats[1] + " | Denetlenen Parametreler: " + stats[0]);
         });
     }
 
@@ -341,20 +341,20 @@ public class SqliPanel extends JPanel {
 
     private void onCancel() {
         cancelled = true;
-        statusLabel.setText("Cancelling SQLi scan...");
+        statusLabel.setText("SQLi taraması iptal ediliyor...");
         scanState.info("burpinho [SQLI]: Cancelled by user");
     }
 
     private void onClear() {
         findingsModel.setRowCount(0);
         logArea.setText("");
-        statusLabel.setText("Ready");
-        summaryLabel.setText("Confirmed SQLi: 0 | Parameters Audited: 0");
+        statusLabel.setText("Hazır");
+        summaryLabel.setText("Doğrulanan SQLi: 0 | Denetlenen Parametreler: 0");
     }
 
     private void onExportCsv() {
         if (findingsModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No SQLi findings to export!", "Export CSV", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak SQLi bulgusu yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -373,9 +373,9 @@ public class SqliPanel extends JPanel {
                     }
                     fw.write(row.toString() + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported successfully to " + f.getAbsolutePath(), "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

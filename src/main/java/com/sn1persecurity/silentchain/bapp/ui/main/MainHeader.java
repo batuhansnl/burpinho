@@ -30,7 +30,7 @@ public class MainHeader extends JPanel {
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setHorizontalAlignment(JLabel.CENTER);
 
-        JLabel tagline = new JLabel("Local & Private AI Vulnerability Scanner for Burp Suite");
+        JLabel tagline = new JLabel("Burp Suite için Yerel & Gizlilik Odaklı AI Güvenlik Açığı Tarayıcısı");
         tagline.setFont(new Font(Font.DIALOG, Font.ITALIC, 12));
         tagline.setForeground(Theme.ACCENT_ORANGE);
         tagline.setAlignmentX(Component.CENTER_ALIGNMENT);

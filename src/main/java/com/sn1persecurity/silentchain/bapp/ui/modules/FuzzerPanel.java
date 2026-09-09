@@ -42,23 +42,23 @@ public class FuzzerPanel extends JPanel {
 
     private final JTextField urlField = new JTextField(24);
     private final JComboBox<String> wordlistCombo = new JComboBox<>(new String[]{
-            "Common Web Paths (50+)",
-            "Admin, Login & Portals (50+)",
-            "API & Microservice Endpoints (50+)",
-            "Sensitive Files & Backups (40+)",
-            "Custom Wordlist..."
+            "Yaygın Web Yolları (50+)",
+            "Admin, Giriş & Portallar (50+)",
+            "API & Mikroservis Endpoint'leri (50+)",
+            "Hassas Dosyalar & Yedekler (40+)",
+            "Özel Wordlist..."
     });
     private final JTextField statusFilterField = new JTextField("200, 201, 301, 302, 307, 401, 403, 500", 14);
     private final JSpinner threadsSpinner = new JSpinner(new SpinnerNumberModel(20, 1, 100, 5));
     private final JTextArea customWordlistArea = new JTextArea(3, 20);
 
-    private final JButton startBtn = new JButton("Start Fuzzing");
-    private final JButton cancelBtn = new JButton("Cancel");
-    private final JButton clearBtn = new JButton("Clear");
-    private final JButton exportBtn = new JButton("Export CSV");
-    private final JLabel statusLabel = new JLabel("Ready");
+    private final JButton startBtn = new JButton("Fuzzing Başlat");
+    private final JButton cancelBtn = new JButton("İptal Et");
+    private final JButton clearBtn = new JButton("Temizle");
+    private final JButton exportBtn = new JButton("CSV Dışa Aktar");
+    private final JLabel statusLabel = new JLabel("Hazır");
     private final JProgressBar progressBar = new JProgressBar();
-    private final JLabel summaryLabel = new JLabel("Discovered Endpoints: 0 | Total Requests Sent: 0");
+    private final JLabel summaryLabel = new JLabel("Keşfedilen Endpoint'ler: 0 | Gönderilen Toplam İstek: 0");
 
     private final DefaultTableModel pathsModel;
     private final JTable pathsTable;
@@ -74,25 +74,25 @@ public class FuzzerPanel extends JPanel {
 
         // ---- Top Config ----
         JPanel configPanel = new JPanel(new GridBagLayout());
-        configPanel.setBorder(BorderFactory.createTitledBorder("Path & Endpoint Fuzzer Configuration"));
+        configPanel.setBorder(BorderFactory.createTitledBorder("Path & Endpoint Fuzzer Yapılandırması"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(3, 4, 3, 4);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        configPanel.add(new JLabel("Target URL (with /FUZZ):"), gbc);
+        configPanel.add(new JLabel("Hedef URL (/FUZZ ile):"), gbc);
         gbc.gridx = 1;
-        urlField.setToolTipText("e.g. https://example.com/FUZZ or https://example.com");
+        urlField.setToolTipText("örn: https://example.com/FUZZ veya https://example.com");
         configPanel.add(urlField, gbc);
 
         gbc.gridx = 2;
-        configPanel.add(new JLabel("Wordlist Profile:"), gbc);
+        configPanel.add(new JLabel("Wordlist Profili:"), gbc);
         gbc.gridx = 3;
         configPanel.add(wordlistCombo, gbc);
 
         // Row 1: Filters, Threads, Buttons
         gbc.gridx = 0; gbc.gridy = 1;
-        configPanel.add(new JLabel("Status Match:"), gbc);
+        configPanel.add(new JLabel("Eşleşen Status Kodları:"), gbc);
         gbc.gridx = 1;
         JPanel fPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         fPanel.add(statusFilterField);
@@ -131,7 +131,7 @@ public class FuzzerPanel extends JPanel {
         add(configPanel, BorderLayout.NORTH);
 
         // ---- Center: Table & Live Log Split Pane ----
-        String[] columnNames = {"#", "Fuzzed URL", "HTTP Status", "Length", "Title / Location", "Latency"};
+        String[] columnNames = {"#", "Fuzz Edilen URL", "HTTP Status", "Boyut", "Başlık / Yönlendirme", "Gecikme"};
         pathsModel = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -171,7 +171,7 @@ public class FuzzerPanel extends JPanel {
 
         // Popup Menu
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem copyUrl = new JMenuItem("Copy Endpoint URL");
+        JMenuItem copyUrl = new JMenuItem("Endpoint URL'sini Kopyala");
         copyUrl.addActionListener(e -> copySelectedCell(1));
         popupMenu.add(copyUrl);
         pathsTable.setComponentPopupMenu(popupMenu);
@@ -183,11 +183,11 @@ public class FuzzerPanel extends JPanel {
         logArea.setForeground(new Color(201, 209, 217));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Discovered Web Endpoints & Resources"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Keşfedilen Web Endpoint'leri & Kaynaklar"));
         tablePanel.add(new JScrollPane(pathsTable), BorderLayout.CENTER);
 
         JPanel logPanel = new JPanel(new BorderLayout());
-        logPanel.setBorder(BorderFactory.createTitledBorder("Fuzzing Live HTTP Probe Log"));
+        logPanel.setBorder(BorderFactory.createTitledBorder("Fuzzing Canlı HTTP İstek Günlüğü"));
         logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
         JSplitPane centerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, logPanel);
@@ -206,7 +206,7 @@ public class FuzzerPanel extends JPanel {
     private void onStart() {
         String rawUrl = urlField.getText().trim();
         if (rawUrl.isEmpty()) {
-            statusLabel.setText("⚠️ Enter a target URL!");
+            statusLabel.setText("⚠️ Bir hedef URL girin!");
             return;
         }
 
@@ -224,7 +224,7 @@ public class FuzzerPanel extends JPanel {
         cancelBtn.setEnabled(true);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-        statusLabel.setText("Fuzzing endpoints...");
+        statusLabel.setText("Endpoint'ler taranıyor (fuzzing)...");
         logArea.setText("");
         pathsModel.setRowCount(0);
 
@@ -234,11 +234,11 @@ public class FuzzerPanel extends JPanel {
             try {
                 runFuzzing(baseUrl, words, allowedCodes, threads);
                 SwingUtilities.invokeLater(() -> {
-                    statusLabel.setText("✅ Fuzzing completed.");
+                    statusLabel.setText("✅ Fuzzing tamamlandı.");
                     scanState.info("burpinho [FUZZER]: Fuzzing finished.");
                 });
             } catch (Throwable t) {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Error: " + t.getMessage()));
+                SwingUtilities.invokeLater(() -> statusLabel.setText("❌ Hata: " + t.getMessage()));
             } finally {
                 SwingUtilities.invokeLater(() -> {
                     startBtn.setEnabled(true);
@@ -266,7 +266,7 @@ public class FuzzerPanel extends JPanel {
                 try {
                     URL u = new URI(targetUrl).toURL();
                     HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/3.2");
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) burpinho/4.0");
                     conn.setConnectTimeout(4000);
                     conn.setReadTimeout(4000);
                     conn.setInstanceFollowRedirects(false);
@@ -294,14 +294,14 @@ public class FuzzerPanel extends JPanel {
 
                     if (allowedCodes.contains(code)) {
                         stats[1]++;
-                        String detail = (location != null ? "Redirect -> " + location : title);
+                        String detail = (location != null ? "Yönlendirme -> " + location : title);
                         final String finalTitle = detail;
                         SwingUtilities.invokeLater(() -> {
                             int id = pathsModel.getRowCount() + 1;
                             pathsModel.addRow(new Object[]{
                                     id, targetUrl, code, length >= 0 ? length : "-", finalTitle, latency + "ms"
                             });
-                            summaryLabel.setText("Discovered Endpoints: " + stats[1] + " | Total Requests Sent: " + stats[0]);
+                            summaryLabel.setText("Keşfedilen Endpoint'ler: " + stats[1] + " | Gönderilen Toplam İstek: " + stats[0]);
                         });
                     }
                 } catch (Throwable t) {
@@ -316,7 +316,7 @@ public class FuzzerPanel extends JPanel {
         } catch (InterruptedException ignored) {}
 
         SwingUtilities.invokeLater(() -> {
-            summaryLabel.setText("Discovered Endpoints: " + stats[1] + " | Total Requests Sent: " + stats[0]);
+            summaryLabel.setText("Keşfedilen Endpoint'ler: " + stats[1] + " | Gönderilen Toplam İstek: " + stats[0]);
         });
     }
 
@@ -376,20 +376,20 @@ public class FuzzerPanel extends JPanel {
 
     private void onCancel() {
         cancelled = true;
-        statusLabel.setText("Cancelling fuzzer...");
+        statusLabel.setText("Fuzzer iptal ediliyor...");
         scanState.info("burpinho [FUZZER]: Cancelled by user");
     }
 
     private void onClear() {
         pathsModel.setRowCount(0);
         logArea.setText("");
-        statusLabel.setText("Ready");
-        summaryLabel.setText("Discovered Endpoints: 0 | Total Requests Sent: 0");
+        statusLabel.setText("Hazır");
+        summaryLabel.setText("Keşfedilen Endpoint'ler: 0 | Gönderilen Toplam İstek: 0");
     }
 
     private void onExportCsv() {
         if (pathsModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No fuzzing results to export!", "Export CSV", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dışa aktarılacak fuzzing sonucu yok!", "CSV Dışa Aktar", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -408,9 +408,9 @@ public class FuzzerPanel extends JPanel {
                     }
                     fw.write(row.toString() + "\n");
                 }
-                JOptionPane.showMessageDialog(this, "Exported successfully to " + f.getAbsolutePath(), "Export CSV", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Başarıyla dışa aktarıldı: " + f.getAbsolutePath(), "CSV Dışa Aktar", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dışa aktarma başarısız: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

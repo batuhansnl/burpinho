@@ -31,11 +31,11 @@ public class ToolsTab extends JPanel {
         summaryLabel.setFont(summaryLabel.getFont().deriveFont(Font.BOLD, 13f));
         topPanel.add(summaryLabel);
 
-        JButton refreshBtn = new JButton("Re-scan Tools");
+        JButton refreshBtn = new JButton("Araçları Yeniden Tara");
         refreshBtn.addActionListener(e -> onRefresh());
         topPanel.add(refreshBtn);
 
-        JButton copyMacBtn = new JButton("📋 Copy macOS Install (Brew+Go)");
+        JButton copyMacBtn = new JButton("📋 macOS Kurulum Komutu (Brew+Go)");
         copyMacBtn.addActionListener(e -> copyToClipboard(
                 "brew install nuclei ffuf sqlmap nikto whatweb jq && " +
                 "brew install go && " +
@@ -50,7 +50,7 @@ public class ToolsTab extends JPanel {
         ));
         topPanel.add(copyMacBtn);
 
-        JButton copyLinuxBtn = new JButton("📋 Copy Linux Install (Apt+Go)");
+        JButton copyLinuxBtn = new JButton("📋 Linux Kurulum Komutu (Apt+Go)");
         copyLinuxBtn.addActionListener(e -> copyToClipboard(
                 "sudo apt update && sudo apt install -y sqlmap nikto whatweb jq golang python3-pip && " +
                 "pip3 install wafw00f && " +
@@ -70,7 +70,7 @@ public class ToolsTab extends JPanel {
 
         // ---- Center: Tools table ----
         tableModel = new DefaultTableModel(
-                new String[]{"Tool", "Category", "Status", "Detected Path / Install Command", "Description"}, 0) {
+                new String[]{"Araç (Tool)", "Kategori", "Durum", "Algılanan Yol / Motor Detayı", "Açıklama"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
 
@@ -97,11 +97,11 @@ public class ToolsTab extends JPanel {
 
         // ---- Bottom: Help text ----
         JTextArea help = new JTextArea(
-                "⚡ Dual-Engine Architecture:\n" +
-                "  • When CLI tools are installed, burpinho executes them at maximum performance.\n" +
-                "  • When CLI tools are missing, burpinho automatically uses built-in pure Java engines\n" +
-                "    (Certificate Transparency, multithreaded DNS & HTTP probing, top-ports scanner, WAF header analysis).\n" +
-                "  • To install missing tools on your machine, click the copy buttons above and paste into Terminal.");
+                "⚡ Çift Motor (Dual-Engine) Mimarisi:\n" +
+                "  • CLI araçları kurulu olduğunda, burpinho bunları maksimum performansla çalıştırır.\n" +
+                "  • CLI araçları kurulu olmadığında, burpinho otomatik olarak dahili saf Java motorlarını kullanır\n" +
+                "    (Certificate Transparency, çok iş parçacıklı DNS & HTTP yoklaması, port tarayıcı, WAF başlık analizi).\n" +
+                "  • Bilgisayarınıza harici araçları kurmak için yukarıdaki kopyalama butonlarına tıklayıp Terminal'e yapıştırabilirsiniz.");
         help.setEditable(false);
         help.setOpaque(false);
         help.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
@@ -119,12 +119,12 @@ public class ToolsTab extends JPanel {
         for (ToolInfo info : allTools) {
             String path = registry.getPath(info.name());
             boolean cliDetected = path != null && !path.isEmpty();
-            String status = "BUILT-IN (READY)";
+            String status = "DAHİLİ (HAZIR)";
             String name = info.name();
 
             String engineDetail = cliDetected
-                    ? "Built-in Engine + CLI Accelerator (" + path + ")"
-                    : "100% Pure Java Engine (Zero Setup / Enterprise Ready)";
+                    ? "Dahili Motor + CLI Hızlandırıcı (" + path + ")"
+                    : "100% Saf Java Motoru (Kurulumsuz / Kurumsal Hazır)";
 
             tableModel.addRow(new Object[]{
                     name,
@@ -148,8 +148,8 @@ public class ToolsTab extends JPanel {
         try {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
             JOptionPane.showMessageDialog(this,
-                    "Installation command copied to clipboard!\nOpen Terminal and paste to install tools.",
-                    "Command Copied", JOptionPane.INFORMATION_MESSAGE);
+                    "Kurulum komutu panoya kopyalandı!\nTerminali açıp yapıştırarak araçları kurabilirsiniz.",
+                    "Komut Kopyalandı", JOptionPane.INFORMATION_MESSAGE);
         } catch (Throwable ignored) {}
     }
 }

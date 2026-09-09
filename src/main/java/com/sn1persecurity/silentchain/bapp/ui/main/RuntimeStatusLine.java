@@ -24,7 +24,7 @@ public class RuntimeStatusLine extends JPanel {
     public RuntimeStatusLine(Settings settings, ScanState scanState) {
         this.settings = settings;
         this.scanState = scanState;
-        setBorder(BorderFactory.createTitledBorder("Runtime Status"));
+        setBorder(BorderFactory.createTitledBorder("Çalışma Durumu"));
         setLayout(new FlowLayout(FlowLayout.CENTER, 4, 2));
         setAlignmentX(Component.CENTER_ALIGNMENT);
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
@@ -34,15 +34,15 @@ public class RuntimeStatusLine extends JPanel {
 
     public void refresh() {
         String provider = settings.provider().displayName();
-        String model = settings.model().isBlank() ? "(default)" : settings.model();
+        String model = settings.model().isBlank() ? "(varsayılan)" : settings.model();
         String scanning;
         if (!settings.passiveEnabled()) {
-            scanning = "Stopped";
+            scanning = "Durduruldu";
         } else if (scanState.isPaused()) {
-            scanning = "Paused";
+            scanning = "Duraklatıldı";
         } else {
-            scanning = "Active";
+            scanning = "Aktif";
         }
-        label.setText(String.format("Provider: %s | Model: %s | Scanning: %s", provider, model, scanning));
+        label.setText(String.format("Sağlayıcı: %s | Model: %s | Tarama: %s", provider, model, scanning));
     }
 }

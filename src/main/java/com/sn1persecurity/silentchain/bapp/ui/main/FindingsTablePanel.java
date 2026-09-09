@@ -27,12 +27,12 @@ public class FindingsTablePanel extends JPanel {
     private final FindingsRegistry registry;
     private final FindingsTableModel model = new FindingsTableModel();
     private final JTable table = new JTable(model);
-    private final JLabel statsLine = new JLabel("Total: 0 | High: 0 | Medium: 0 | Low: 0 | Info: 0");
+    private final JLabel statsLine = new JLabel("Toplam: 0 | Yüksek: 0 | Orta: 0 | Düşük: 0 | Bilgi: 0");
 
     public FindingsTablePanel(FindingsRegistry registry) {
         super(new BorderLayout());
         this.registry = registry;
-        setBorder(BorderFactory.createTitledBorder("Findings"));
+        setBorder(BorderFactory.createTitledBorder("Bulgular"));
 
         statsLine.setFont(new Font(Font.MONOSPACED, Font.BOLD, 11));
         statsLine.setBorder(BorderFactory.createEmptyBorder(2, 6, 4, 6));
@@ -52,7 +52,7 @@ public class FindingsTablePanel extends JPanel {
 
     public void refresh() {
         model.setRows(registry.snapshot());
-        statsLine.setText(String.format("Total: %d | High: %d | Medium: %d | Low: %d | Info: %d",
+        statsLine.setText(String.format("Toplam: %d | Yüksek: %d | Orta: %d | Düşük: %d | Bilgi: %d",
                 registry.total(), registry.high(), registry.medium(), registry.low(), registry.info()));
     }
 
@@ -62,7 +62,7 @@ public class FindingsTablePanel extends JPanel {
     }
 
     private static class FindingsTableModel extends AbstractTableModel {
-        private static final String[] COLS = {"Discovered At", "URL", "Finding", "Severity", "Confidence"};
+        private static final String[] COLS = {"Keşif Zamanı", "URL", "Bulgu", "Severity", "Güven"};
         private List<FindingRow> rows = new ArrayList<>();
 
         void setRows(List<FindingRow> newRows) {
